@@ -1034,7 +1034,7 @@
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUid = user.uid;
-                const _base = window.location.href.replace(/admin\.html.*$/, '');
+                const _base = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
                 const _displayUrl = _base + 'index.html?id=' + user.uid;
                 document.getElementById('display-url-text').textContent = _displayUrl;
                 document.getElementById('open-display-btn').href = _displayUrl;
