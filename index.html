@@ -1401,43 +1401,12 @@
             // --- MULTI-TENANT: auth-based tenant ID ---
             let currentUid = null;
             let _unsubListeners = [];
-            function tenantRef() { return db.collection('tenants').doc(currentUid); }
-            function slidesRef() { return tenantRef().collection('slides'); }
-
-            function loginDisplay() {
-                const email = document.getElementById('display-email').value;
-                const pass = document.getElementById('display-password').value;
-                const btn = document.getElementById('display-login-btn');
-                const err = document.getElementById('display-login-error');
-                err.style.display = 'none';
-                btn.disabled = true; btn.textContent = 'Signing in...';
-                auth.signInWithEmailAndPassword(email, pass)
-                    .catch((e) => {
-                        err.textContent = e.message; err.style.display = 'block';
-                        btn.disabled = false; btn.textContent = 'Sign In';
-                    });
+            let _appInitialized = false;
+            function tenantRef() {
+                if (!currentUid) throw new Error('tenantRef called before auth');
+                return db.collection('tenants').doc(currentUid);
             }
-
-            // Enter key submits login
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && document.getElementById('display-login-screen').style.display !== 'none') loginDisplay();
-            });
-
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    currentUid = user.uid;
-                    document.getElementById('display-login-screen').style.display = 'none';
-                    initApp();
-                } else {
-                    // Clean up any live listeners
-                    _unsubListeners.forEach(fn => fn());
-                    _unsubListeners = [];
-                    _appInitialized = false;
-                    currentUid = null;
-                    APP_CONFIG = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-                    document.getElementById('display-login-screen').style.display = 'flex';
-                }
-            });
+            function slidesRef() { return tenantRef().collection('slides'); }
 
             // --- CONSTANTS (Avoid Magic Numbers) ---
             const CONSTANTS = {
@@ -1605,6 +1574,7 @@
              * Called once on display load so the display works even before admin visits.
              */
             function seedBuiltinSlides() {
+                if (!currentUid) return;
                 slidesRef().doc('builtin-silent').get().then(doc => {
                     if (!doc.exists) slidesRef().doc('builtin-silent').set({
                         builtin: true, subtype: 'silent', visible: true, order: 998,
@@ -1643,7 +1613,6 @@
             /**
              * Initializes the application - sets up listeners and starts clock
              */
-            let _appInitialized = false;
             function initApp() {
                 if (_appInitialized) return;
                 _appInitialized = true;
@@ -1672,6 +1641,7 @@
              * Called every 10 minutes as a keep-alive / TV sleep fix.
              */
             function forceResync() {
+                if (!currentUid) return;
                 tenantRef().get({ source: 'server' })
                     .then((doc) => {
                         if (!doc.exists) return;
@@ -2284,8 +2254,39 @@
                 }
             }
 
-            // Start App
-            initApp();
+            // Start App — wait for auth before doing anything
+            function loginDisplay() {
+                const email = document.getElementById('display-email').value;
+                const pass = document.getElementById('display-password').value;
+                const btn = document.getElementById('display-login-btn');
+                const err = document.getElementById('display-login-error');
+                err.style.display = 'none';
+                btn.disabled = true; btn.textContent = 'Signing in...';
+                auth.signInWithEmailAndPassword(email, pass)
+                    .catch((e) => {
+                        err.textContent = e.message; err.style.display = 'block';
+                        btn.disabled = false; btn.textContent = 'Sign In';
+                    });
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && document.getElementById('display-login-screen').style.display !== 'none') loginDisplay();
+            });
+
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUid = user.uid;
+                    document.getElementById('display-login-screen').style.display = 'none';
+                    initApp();
+                } else {
+                    _unsubListeners.forEach(fn => fn());
+                    _unsubListeners = [];
+                    _appInitialized = false;
+                    currentUid = null;
+                    APP_CONFIG = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+                    document.getElementById('display-login-screen').style.display = 'flex';
+                }
+            });
         </script>
 </body>
 
