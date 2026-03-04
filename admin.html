@@ -663,6 +663,31 @@
         .wz-btn-next { background: var(--gold-primary); color: #000; }
         .wz-btn-next:hover { background: var(--gold-light); }
         .wz-btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ======== MODE TOGGLE ======== */
+        .mode-toggle-group { display: flex; gap: 0; margin-bottom: 18px; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; }
+        .mode-toggle-btn { flex: 1; padding: 10px 16px; background: transparent; color: var(--text-muted); border: none; cursor: pointer; font-size: 0.84rem; font-weight: 500; transition: all 0.2s; font-family: var(--font-main); text-align: center; border-right: 1px solid rgba(255,255,255,0.08); }
+        .mode-toggle-btn:last-child { border-right: none; }
+        .mode-toggle-btn i { margin-right: 6px; }
+        .mode-toggle-btn.active { background: var(--gold-primary); color: #111; font-weight: 700; }
+        .mode-toggle-btn:not(.active):hover { background: rgba(255,255,255,0.07); color: #fff; }
+        .mode-section { display: none; }
+        .mode-section.visible { display: block; }
+
+        /* ======== CSV UPLOAD ======== */
+        .csv-drop-zone { border: 2px dashed rgba(212,175,55,0.35); border-radius: 12px; padding: 26px 20px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; background: rgba(212,175,55,0.02); }
+        .csv-drop-zone:hover, .csv-drop-zone.drag-over { border-color: var(--gold-primary); background: rgba(212,175,55,0.06); }
+        .csv-drop-zone .csv-icon { font-size: 2.2rem; color: var(--gold-primary); margin-bottom: 8px; }
+        .csv-drop-zone p { color: var(--text-muted); font-size: 0.84rem; margin: 0 0 10px; line-height: 1.5; }
+        .csv-drop-zone .csv-btn { background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.35); color: var(--gold-primary); padding: 6px 16px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: var(--font-main); }
+        .csv-status { font-size: 0.82rem; padding: 9px 14px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .csv-status.ok { background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+        .csv-status.err { background: rgba(255,107,107,0.1); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.2); }
+        .csv-template-link { font-size: 0.8rem; color: var(--gold-primary); cursor: pointer; text-decoration: underline; display: inline-block; margin-bottom: 14px; }
+        .csv-preview-table { width: 100%; border-collapse: collapse; font-size: 0.76rem; margin-top: 10px; }
+        .csv-preview-table th { color: var(--gold-primary); text-align: left; padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-weight: 600; }
+        .csv-preview-table td { color: var(--text-muted); padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .csv-preview-table tr:hover td { color: #fff; }
     </style>
 </head>
 
@@ -955,54 +980,81 @@
                     </div>
 
                     <h3 style="margin:20px 0 5px; color:var(--gold-light); border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;">
-                        Daily Prayers &mdash; Jamat Times (4-Week Schedule)</h3>
+                        Daily Prayers &mdash; Jamat Times</h3>
                     <p style="color:var(--text-muted); font-size:0.82rem; margin:0 0 12px;">
-                        Set different jamat times per week of the month.<br>
-                        <span style="color:#4ade80;">&#9679;</span> marks the current week. The display automatically uses the matching week.
+                        Choose how Jamaat times are sourced for the display.
                     </p>
 
-                    <div class="week-tabs">
-                        <button class="week-tab-btn active" onclick="switchWeekTab(0)">Week 1<small>1st &ndash; 7th</small></button>
-                        <button class="week-tab-btn" onclick="switchWeekTab(1)">Week 2<small>8th &ndash; 14th</small></button>
-                        <button class="week-tab-btn" onclick="switchWeekTab(2)">Week 3<small>15th &ndash; 21st</small></button>
-                        <button class="week-tab-btn" onclick="switchWeekTab(3)">Week 4<small>22nd &ndash; 31st</small></button>
+                    <!-- Jamaat mode toggle -->
+                    <div class="mode-toggle-group">
+                        <button class="mode-toggle-btn active" id="jamaat-mode-btn-manual" onclick="setJamaatMode('manual')">
+                            <i class="fas fa-calendar-alt"></i> Manual (4-Week Schedule)
+                        </button>
+                        <button class="mode-toggle-btn" id="jamaat-mode-btn-upload" onclick="setJamaatMode('upload')">
+                            <i class="fas fa-file-csv"></i> From Annual Timetable
+                        </button>
                     </div>
 
-                    <!-- WEEK 1 -->
-                    <div id="week-tab-0" class="week-content active">
-                        <div class="form-group"><label>Fajr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-fajr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-fajr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Dhuhr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-dhuhr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-dhuhr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Asr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-asr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-asr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Maghrib Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-maghrib-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-maghrib-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Isha Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-isha-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-isha-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                    </div>
+                    <!-- MANUAL section (4-week tabs) -->
+                    <div id="jamaat-manual-section" class="mode-section visible">
+                        <p style="color:var(--text-muted); font-size:0.82rem; margin:0 0 12px;">
+                            Set different jamat times per week of the month.<br>
+                            <span style="color:#4ade80;">&#9679;</span> marks the current week. The display automatically uses the matching week.
+                        </p>
+                        <div class="week-tabs">
+                            <button class="week-tab-btn active" onclick="switchWeekTab(0)">Week 1<small>1st &ndash; 7th</small></button>
+                            <button class="week-tab-btn" onclick="switchWeekTab(1)">Week 2<small>8th &ndash; 14th</small></button>
+                            <button class="week-tab-btn" onclick="switchWeekTab(2)">Week 3<small>15th &ndash; 21st</small></button>
+                            <button class="week-tab-btn" onclick="switchWeekTab(3)">Week 4<small>22nd &ndash; 31st</small></button>
+                        </div>
+                        <!-- WEEK 1 -->
+                        <div id="week-tab-0" class="week-content active">
+                            <div class="form-group"><label>Fajr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-fajr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-fajr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Dhuhr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-dhuhr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-dhuhr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Asr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-asr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-asr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Maghrib Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-maghrib-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-maghrib-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Isha Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-isha-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-isha-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                        </div>
+                        <!-- WEEK 2 -->
+                        <div id="week-tab-1" class="week-content">
+                            <div class="form-group"><label>Fajr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-fajr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-fajr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Dhuhr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-dhuhr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-dhuhr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Asr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-asr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-asr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Maghrib Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-maghrib-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-maghrib-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Isha Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-isha-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-isha-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                        </div>
+                        <!-- WEEK 3 -->
+                        <div id="week-tab-2" class="week-content">
+                            <div class="form-group"><label>Fajr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-fajr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-fajr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Dhuhr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-dhuhr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-dhuhr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Asr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-asr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-asr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Maghrib Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-maghrib-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-maghrib-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Isha Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-isha-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-isha-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                        </div>
+                        <!-- WEEK 4 -->
+                        <div id="week-tab-3" class="week-content">
+                            <div class="form-group"><label>Fajr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-fajr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-fajr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Dhuhr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-dhuhr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-dhuhr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Asr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-asr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-asr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Maghrib Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-maghrib-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-maghrib-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="form-group"><label>Isha Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-isha-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-isha-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                        </div>
+                    </div><!-- /jamaat-manual-section -->
 
-                    <!-- WEEK 2 -->
-                    <div id="week-tab-1" class="week-content">
-                        <div class="form-group"><label>Fajr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-fajr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-fajr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Dhuhr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-dhuhr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-dhuhr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Asr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-asr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-asr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Maghrib Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-maghrib-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-maghrib-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Isha Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-isha-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-isha-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                    </div>
-
-                    <!-- WEEK 3 -->
-                    <div id="week-tab-2" class="week-content">
-                        <div class="form-group"><label>Fajr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-fajr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-fajr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Dhuhr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-dhuhr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-dhuhr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Asr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-asr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-asr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Maghrib Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-maghrib-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-maghrib-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Isha Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-isha-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-isha-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                    </div>
-
-                    <!-- WEEK 4 -->
-                    <div id="week-tab-3" class="week-content">
-                        <div class="form-group"><label>Fajr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-fajr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-fajr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Dhuhr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-dhuhr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-dhuhr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Asr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-asr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-asr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Maghrib Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-maghrib-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-maghrib-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                        <div class="form-group"><label>Isha Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-isha-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-isha-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                    </div>
+                    <!-- UPLOAD section (jamaat from annual timetable) -->
+                    <div id="jamaat-upload-section" class="mode-section">
+                        <p style="color:var(--text-muted); font-size:0.86rem; margin-bottom:14px; line-height:1.6;">
+                            The display will look up today's date in your uploaded annual timetable and use the Jamaat columns from it.
+                            Make sure you have already uploaded a timetable in the <strong style="color:var(--gold-primary);">Prayer API</strong> tab with Jamaat columns included.
+                        </p>
+                        <div id="jamaat-csv-status" style="display:none;"></div>
+                        <p style="color:var(--text-muted); font-size:0.82rem; padding:10px 14px; background:rgba(255,255,255,0.03); border-radius:8px; border-left:3px solid var(--gold-primary);">
+                            <i class="fas fa-info-circle" style="color:var(--gold-primary);"></i>
+                            To upload a timetable, go to the <strong style="color:#fff;">Prayer API</strong> tab and switch to <strong style="color:#fff;">Upload Annual Timetable</strong>. Include columns
+                            <code style="background:rgba(255,255,255,0.07);padding:1px 5px;border-radius:3px;">Fajr Jamaat</code>,
+                            <code style="background:rgba(255,255,255,0.07);padding:1px 5px;border-radius:3px;">Dhuhr Jamaat</code>, etc.
+                        </p>
+                    </div><!-- /jamaat-upload-section -->
 
                 </div>
 
@@ -1155,52 +1207,96 @@
 
                 <!-- 4. API SETTINGS -->
                 <div id="tab-api" class="tab-content">
-                    <p style="color: var(--gold-primary); margin-bottom: 20px;">
-                        <i class="fas fa-satellite-dish"></i> Prayer Times provided by Aladhan API
-                    </p>
-                    <div class="form-group">
-                        <label>City</label>
-                        <input type="text" id="api-city" class="form-control" placeholder="London">
-                    </div>
-                    <div class="form-group">
-                        <label>Country</label>
-                        <input type="text" id="api-country" class="form-control" placeholder="UK">
-                    </div>
-                    <div class="form-group">
-                        <label>Calculation Method</label>
-                        <select id="api-method" class="form-control"
-                            style="background: rgba(255, 255, 255, 0.05); color: white;">
-                            <option value="3">Muslim World League</option>
-                            <option value="2">ISNA</option>
-                            <option value="5">Egyptian General Authority</option>
-                            <option value="4">Umm Al-Qura University, Makkah</option>
-                            <option value="1">University of Islamic Sciences, Karachi</option>
-                            <option value="12">France (UOIF)</option>
-                            <option value="13">Turkey (Diyanet)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Asr Juristic Method</label>
-                        <select id="api-school" class="form-control"
-                            style="background: rgba(255, 255, 255, 0.05); color: white;">
-                            <option value="0">Shafi (Standard)</option>
-                            <option value="1">Hanafi</option>
-                        </select>
+
+                    <!-- Mode selector -->
+                    <div class="mode-toggle-group" style="margin-bottom:20px;">
+                        <button class="mode-toggle-btn active" id="prayer-mode-btn-auto" onclick="setPrayerMode('auto')">
+                            <i class="fas fa-satellite-dish"></i> Automatic (Aladhan API)
+                        </button>
+                        <button class="mode-toggle-btn" id="prayer-mode-btn-upload" onclick="setPrayerMode('upload')">
+                            <i class="fas fa-file-csv"></i> Upload Annual Timetable
+                        </button>
                     </div>
 
-                    <div style="margin-top:25px; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <div>
-                                <div style="font-weight:600; color:var(--text-white);"><i class="fas fa-table" style="color:var(--gold-primary);"></i> Prayer Timetable Preview</div>
-                                <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">Begins times from Aladhan for this month &mdash; W1&ndash;W4 shows which week config applies</div>
+                    <!-- AUTO section -->
+                    <div id="prayer-auto-section" class="mode-section visible">
+                        <p style="color:var(--gold-primary); margin-bottom:20px; font-size:0.87rem;">
+                            <i class="fas fa-satellite-dish"></i> Prayer begin times fetched automatically from the Aladhan API based on your location.
+                        </p>
+                        <div class="form-group">
+                            <label>City</label>
+                            <input type="text" id="api-city" class="form-control" placeholder="London">
+                        </div>
+                        <div class="form-group">
+                            <label>Country</label>
+                            <input type="text" id="api-country" class="form-control" placeholder="UK">
+                        </div>
+                        <div class="form-group">
+                            <label>Calculation Method</label>
+                            <select id="api-method" class="form-control" style="background:rgba(255,255,255,0.05); color:white;">
+                                <option value="3">Muslim World League</option>
+                                <option value="2">ISNA</option>
+                                <option value="5">Egyptian General Authority</option>
+                                <option value="4">Umm Al-Qura University, Makkah</option>
+                                <option value="1">University of Islamic Sciences, Karachi</option>
+                                <option value="12">France (UOIF)</option>
+                                <option value="13">Turkey (Diyanet)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Asr Juristic Method</label>
+                            <select id="api-school" class="form-control" style="background:rgba(255,255,255,0.05); color:white;">
+                                <option value="0">Shafi (Standard)</option>
+                                <option value="1">Hanafi</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-top:25px; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <div>
+                                    <div style="font-weight:600; color:var(--text-white);"><i class="fas fa-table" style="color:var(--gold-primary);"></i> Prayer Timetable Preview</div>
+                                    <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">Begin times from Aladhan for this month &mdash; W1&ndash;W4 shows which week config applies</div>
+                                </div>
+                                <button class="btn btn-secondary" onclick="loadTimetable()" id="btn-load-timetable" style="padding:8px 14px; font-size:0.82rem; white-space:nowrap;">
+                                    <i class="fas fa-table"></i> Load
+                                </button>
                             </div>
-                            <button class="btn btn-secondary" onclick="loadTimetable()" id="btn-load-timetable" style="padding:8px 14px; font-size:0.82rem; white-space:nowrap;">
-                                <i class="fas fa-table"></i> Load
-                            </button>
+                            <div id="timetable-container" style="display:none;">
+                                <div id="timetable-content"></div>
+                            </div>
                         </div>
-                        <div id="timetable-container" style="display:none;">
-                            <div id="timetable-content"></div>
+                    </div>
+
+                    <!-- UPLOAD section -->
+                    <div id="prayer-upload-section" class="mode-section">
+                        <p style="color:var(--text-muted); font-size:0.86rem; margin-bottom:14px; line-height:1.6;">
+                            Upload a CSV with your mosque's annual prayer timetable. The display will use the exact begin times for each date instead of the API.
+                            Optionally include Jamaat columns to also replace the 4-week Jamaat schedule.
+                        </p>
+
+                        <!-- Download template -->
+                        <span class="csv-template-link" onclick="downloadCsvTemplate()">
+                            <i class="fas fa-download"></i> Download CSV template
+                        </span>
+
+                        <!-- Drop zone -->
+                        <div class="csv-drop-zone" id="prayer-drop-zone"
+                             onclick="document.getElementById('prayer-csv-input').click()"
+                             ondragover="event.preventDefault(); this.classList.add('drag-over')"
+                             ondragleave="this.classList.remove('drag-over')"
+                             ondrop="handleCsvDrop(event,'prayer')">
+                            <div class="csv-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                            <p>Drag &amp; drop your CSV here, or click to browse<br>
+                               <small>Required columns: Date, Fajr Begin, Sunrise, Dhuhr Begin, Asr Begin, Maghrib Begin, Isha Begin</small></p>
+                            <span class="csv-btn"><i class="fas fa-file-csv"></i> Choose File</span>
                         </div>
+                        <input type="file" id="prayer-csv-input" accept=".csv,text/csv" style="display:none" onchange="handleCsvFileInput(event,'prayer')">
+
+                        <!-- Status message -->
+                        <div id="prayer-csv-status" style="display:none;"></div>
+
+                        <!-- Preview table -->
+                        <div id="prayer-csv-preview" style="display:none; overflow-x:auto; max-height:240px; overflow-y:auto; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:4px;"></div>
                     </div>
                 </div>
 
@@ -1268,7 +1364,10 @@
                 JSON.parse(JSON.stringify(WEEK_DEFAULT)),
                 JSON.parse(JSON.stringify(WEEK_DEFAULT)),
                 JSON.parse(JSON.stringify(WEEK_DEFAULT))
-            ]
+            ],
+            prayerTimesMode: 'auto',
+            jamaatTimesMode: 'manual',
+            annualTimetable: []
         };
 
         let APP_CONFIG = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
@@ -1355,6 +1454,9 @@
                     } else {
                         APP_CONFIG.weeklyPrayers = JSON.parse(JSON.stringify(DEFAULT_CONFIG.weeklyPrayers));
                     }
+                    APP_CONFIG.prayerTimesMode = data.prayerTimesMode || 'auto';
+                    APP_CONFIG.jamaatTimesMode = data.jamaatTimesMode || 'manual';
+                    APP_CONFIG.annualTimetable = data.annualTimetable || [];
                     updateStatsUI();
                 } else {
                     showSetupWizard();
@@ -1421,6 +1523,11 @@
 
             selectTheme(APP_CONFIG.theme);
             selectLayout(APP_CONFIG.layout);
+            // Mode toggles
+            setPrayerMode(APP_CONFIG.prayerTimesMode || 'auto', true);
+            setJamaatMode(APP_CONFIG.jamaatTimesMode || 'manual', true);
+            // Annual timetable status
+            _updateCsvStatus();
         }
 
         function saveSettings() {
@@ -1479,7 +1586,10 @@
                 weeklyPrayers: APP_CONFIG.weeklyPrayers,
                 mosqueName: APP_CONFIG.mosqueName,
                 mosqueLocation: APP_CONFIG.mosqueLocation,
-                mosqueNameAr: APP_CONFIG.mosqueNameAr
+                mosqueNameAr: APP_CONFIG.mosqueNameAr,
+                prayerTimesMode: APP_CONFIG.prayerTimesMode,
+                jamaatTimesMode: APP_CONFIG.jamaatTimesMode,
+                annualTimetable: APP_CONFIG.annualTimetable
             }, { merge: true })
                 .then(() => {
                     btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
@@ -1902,6 +2012,195 @@
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-sync"></i> Refresh';
             }
+        }
+
+        // ======== PRAYER / JAMAAT MODE TOGGLES ========
+        function setPrayerMode(mode, silent) {
+            APP_CONFIG.prayerTimesMode = mode;
+            document.getElementById('prayer-mode-btn-auto').classList.toggle('active', mode === 'auto');
+            document.getElementById('prayer-mode-btn-upload').classList.toggle('active', mode === 'upload');
+            document.getElementById('prayer-auto-section').classList.toggle('visible', mode === 'auto');
+            document.getElementById('prayer-upload-section').classList.toggle('visible', mode === 'upload');
+        }
+
+        function setJamaatMode(mode, silent) {
+            APP_CONFIG.jamaatTimesMode = mode;
+            document.getElementById('jamaat-mode-btn-manual').classList.toggle('active', mode === 'manual');
+            document.getElementById('jamaat-mode-btn-upload').classList.toggle('active', mode === 'upload');
+            document.getElementById('jamaat-manual-section').classList.toggle('visible', mode === 'manual');
+            document.getElementById('jamaat-upload-section').classList.toggle('visible', mode === 'upload');
+            // Show CSV status in jamaat's upload section if timetable already loaded
+            _updateJamaatCsvStatus();
+        }
+
+        // ======== CSV TIMETABLE UPLOAD ========
+        // CSV expected columns (case-insensitive headers):
+        //   Date, Fajr Begin, Sunrise, Dhuhr Begin, Asr Begin, Maghrib Begin, Isha Begin
+        //   [Optional] Fajr Jamaat, Dhuhr Jamaat, Asr Jamaat, Maghrib Jamaat, Isha Jamaat
+
+        function handleCsvDrop(event, type) {
+            event.preventDefault();
+            document.getElementById('prayer-drop-zone').classList.remove('drag-over');
+            const file = event.dataTransfer.files[0];
+            if (file) _readCsvFile(file);
+        }
+
+        function handleCsvFileInput(event, type) {
+            const file = event.target.files[0];
+            if (file) _readCsvFile(file);
+        }
+
+        function _readCsvFile(file) {
+            if (!file.name.endsWith('.csv') && file.type !== 'text/csv') {
+                _showCsvStatus('prayer', 'err', '<i class="fas fa-times-circle"></i> Please upload a .csv file.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => _parseCsv(e.target.result, file.name);
+            reader.readAsText(file);
+        }
+
+        function _parseCsv(text, filename) {
+            const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+            if (lines.length < 2) {
+                _showCsvStatus('prayer', 'err', '<i class="fas fa-times-circle"></i> CSV is empty or has no data rows.');
+                return;
+            }
+
+            // Parse header
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            const col = (name) => headers.indexOf(name.toLowerCase());
+
+            const iDate       = col('date');
+            const iFajrB      = col('fajr begin');
+            const iSunrise    = col('sunrise');
+            const iDhuhrB     = col('dhuhr begin');
+            const iAsrB       = col('asr begin');
+            const iMaghribB   = col('maghrib begin');
+            const iIshaB      = col('isha begin');
+            const iFajrJ      = col('fajr jamaat');
+            const iDhuhrJ     = col('dhuhr jamaat');
+            const iAsrJ       = col('asr jamaat');
+            const iMaghribJ   = col('maghrib jamaat');
+            const iIshaJ      = col('isha jamaat');
+
+            if (iDate === -1 || iFajrB === -1 || iDhuhrB === -1 || iMaghribB === -1 || iIshaB === -1) {
+                _showCsvStatus('prayer', 'err',
+                    '<i class="fas fa-times-circle"></i> Missing required columns. Need at least: Date, Fajr Begin, Dhuhr Begin, Asr Begin, Maghrib Begin, Isha Begin.');
+                return;
+            }
+
+            const rows = [];
+            for (let i = 1; i < lines.length; i++) {
+                const cells = lines[i].split(',').map(c => c.trim());
+                if (!cells[iDate]) continue;
+                const row = {
+                    date: cells[iDate],
+                    fajrB:    cells[iFajrB]    || '',
+                    sunrise:  iSunrise !== -1   ? cells[iSunrise]  || '' : '',
+                    dhuhrB:   cells[iDhuhrB]   || '',
+                    asrB:     iAsrB !== -1      ? cells[iAsrB]     || '' : '',
+                    maghribB: cells[iMaghribB] || '',
+                    ishaB:    cells[iIshaB]    || '',
+                };
+                if (iFajrJ !== -1)    row.fajrJ    = cells[iFajrJ]    || '';
+                if (iDhuhrJ !== -1)   row.dhuhrJ   = cells[iDhuhrJ]   || '';
+                if (iAsrJ !== -1)     row.asrJ     = cells[iAsrJ]     || '';
+                if (iMaghribJ !== -1) row.maghribJ = cells[iMaghribJ] || '';
+                if (iIshaJ !== -1)    row.ishaJ    = cells[iIshaJ]    || '';
+                rows.push(row);
+            }
+
+            const hasJamaat = iFajrJ !== -1;
+            APP_CONFIG.annualTimetable = rows;
+
+            _showCsvStatus('prayer', 'ok',
+                `<i class="fas fa-check-circle"></i> <strong>${filename}</strong> loaded — ${rows.length} dates${hasJamaat ? ', includes Jamaat columns ✓' : ' (no Jamaat columns — Jamaat will use Manual schedule)'}`);
+            _renderCsvPreview(rows);
+            _updateJamaatCsvStatus();
+        }
+
+        function _showCsvStatus(type, cls, html) {
+            const el = document.getElementById(`${type}-csv-status`);
+            el.style.display = 'flex';
+            el.className = `csv-status ${cls}`;
+            el.innerHTML = html;
+        }
+
+        function _renderCsvPreview(rows) {
+            const preview = document.getElementById('prayer-csv-preview');
+            const sample = rows.slice(0, 7);
+            const hasJamaat = 'fajrJ' in (rows[0] || {});
+            let html = '<table class="csv-preview-table"><thead><tr>' +
+                '<th>Date</th><th>Fajr</th><th>Sunrise</th><th>Dhuhr</th><th>Asr</th><th>Maghrib</th><th>Isha</th>' +
+                (hasJamaat ? '<th>F.Jam</th><th>D.Jam</th><th>A.Jam</th><th>M.Jam</th><th>I.Jam</th>' : '') +
+                '</tr></thead><tbody>';
+            sample.forEach(r => {
+                html += `<tr><td>${r.date}</td><td>${r.fajrB}</td><td>${r.sunrise}</td><td>${r.dhuhrB}</td><td>${r.asrB}</td><td>${r.maghribB}</td><td>${r.ishaB}</td>` +
+                    (hasJamaat ? `<td>${r.fajrJ||''}</td><td>${r.dhuhrJ||''}</td><td>${r.asrJ||''}</td><td>${r.maghribJ||''}</td><td>${r.ishaJ||''}</td>` : '') +
+                    '</tr>';
+            });
+            if (rows.length > 7) html += `<tr><td colspan="${hasJamaat?13:7}" style="color:var(--text-muted);text-align:center;">… and ${rows.length - 7} more rows</td></tr>`;
+            html += '</tbody></table>';
+            preview.innerHTML = html;
+            preview.style.display = 'block';
+        }
+
+        function _updateCsvStatus() {
+            const tbl = APP_CONFIG.annualTimetable;
+            if (!tbl || tbl.length === 0) {
+                document.getElementById('prayer-csv-status').style.display = 'none';
+                document.getElementById('prayer-csv-preview').style.display = 'none';
+                return;
+            }
+            const hasJamaat = 'fajrJ' in (tbl[0] || {});
+            _showCsvStatus('prayer', 'ok',
+                `<i class="fas fa-check-circle"></i> Annual timetable loaded — <strong>${tbl.length} dates</strong>${hasJamaat ? ', includes Jamaat columns ✓' : ''}`);
+            _renderCsvPreview(tbl);
+            _updateJamaatCsvStatus();
+        }
+
+        function _updateJamaatCsvStatus() {
+            const tbl = APP_CONFIG.annualTimetable;
+            const el  = document.getElementById('jamaat-csv-status');
+            if (!el) return;
+            const hasJamaat = tbl && tbl.length > 0 && 'fajrJ' in (tbl[0] || {});
+            if (hasJamaat) {
+                el.style.display = 'flex';
+                el.className = 'csv-status ok';
+                el.innerHTML = `<i class="fas fa-check-circle"></i> Annual timetable with Jamaat times is loaded (${tbl.length} dates). The display will use these times.`;
+            } else if (tbl && tbl.length > 0) {
+                el.style.display = 'flex';
+                el.className = 'csv-status err';
+                el.innerHTML = `<i class="fas fa-exclamation-circle"></i> Timetable is loaded but has no Jamaat columns. Add Fajr Jamaat, Dhuhr Jamaat … columns to your CSV.`;
+            } else {
+                el.style.display = 'none';
+            }
+        }
+
+        function downloadCsvTemplate() {
+            const header = 'Date,Fajr Begin,Sunrise,Dhuhr Begin,Asr Begin,Maghrib Begin,Isha Begin,Fajr Jamaat,Dhuhr Jamaat,Asr Jamaat,Maghrib Jamaat,Isha Jamaat';
+            // Generate a few sample rows for the current year
+            const year = new Date().getFullYear();
+            const rows = [header];
+            const months = [
+                [31,`01/${year}`], [28,`02/${year}`], [31,`03/${year}`],
+                [30,`04/${year}`], [31,`05/${year}`], [30,`06/${year}`],
+                [31,`07/${year}`], [31,`08/${year}`], [30,`09/${year}`],
+                [31,`10/${year}`], [30,`11/${year}`], [31,`12/${year}`]
+            ];
+            months.forEach(([days, monthYear]) => {
+                const [mon, yr] = monthYear.split('/');
+                for (let d = 1; d <= days; d++) {
+                    const dd = String(d).padStart(2,'0');
+                    rows.push(`${dd}/${mon}/${yr},00:00,00:00,00:00,00:00,00:00,00:00,00:00,00:00,00:00,00:00,00:00`);
+                }
+            });
+            const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `mosque_timetable_template_${year}.csv`;
+            a.click();
         }
 
         // ======== SETUP WIZARD ========

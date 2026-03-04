@@ -1657,6 +1657,9 @@
                         } else if (data.dailyPrayers) {
                             APP_CONFIG.weeklyPrayers = [0,1,2,3].map(() => JSON.parse(JSON.stringify(data.dailyPrayers)));
                         }
+                        APP_CONFIG.prayerTimesMode = data.prayerTimesMode || 'auto';
+                        APP_CONFIG.jamaatTimesMode  = data.jamaatTimesMode  || 'manual';
+                        APP_CONFIG.annualTimetable  = data.annualTimetable  || [];
                         applyTheme(APP_CONFIG.theme);
                         applyLayout(APP_CONFIG.layout);
                         updateJummahTimesDisplay();
@@ -1711,6 +1714,9 @@
                                 APP_CONFIG.weeklyPrayers = [0,1,2,3].map(() => JSON.parse(JSON.stringify(data.dailyPrayers)));
                                 APP_CONFIG.dailyPrayers = data.dailyPrayers;
                             }
+                            APP_CONFIG.prayerTimesMode = data.prayerTimesMode || 'auto';
+                            APP_CONFIG.jamaatTimesMode  = data.jamaatTimesMode  || 'manual';
+                            APP_CONFIG.annualTimetable  = data.annualTimetable  || [];
 
                             updateJummahTimesDisplay();
                             updateClock();
@@ -2090,22 +2096,54 @@
 
 
 
+            // --- HELPERS for annual timetable ---
+            function _getTodayDateStr() {
+                const now = new Date();
+                const dd = String(now.getDate()).padStart(2,'0');
+                const mm = String(now.getMonth()+1).padStart(2,'0');
+                return `${dd}/${mm}/${now.getFullYear()}`;
+            }
+            function _parseJamTime(str) {
+                if (!str) return { h:0, m:0 };
+                const parts = str.split(':');
+                return { h: parseInt(parts[0])||0, m: parseInt(parts[1])||0 };
+            }
+            function _getTodayTimetableRow() {
+                const tbl = APP_CONFIG.annualTimetable;
+                if (!tbl || !tbl.length) return null;
+                const today = _getTodayDateStr();
+                return tbl.find(r => r.date === today) || null;
+            }
+
             // --- ALADHAN API INTEGRATION ---
             function fetchPrayerTimes() {
-                if (!APP_CONFIG.prayerConfig) return;
+                // If upload mode, use annual timetable for prayer begin times
+                if (APP_CONFIG.prayerTimesMode === 'upload') {
+                    const row = _getTodayTimetableRow();
+                    if (row) {
+                        updateDailyPrayerDisplay({
+                            Fajr:    row.fajrB    || '00:00',
+                            Sunrise: row.sunrise  || '00:00',
+                            Dhuhr:   row.dhuhrB   || '00:00',
+                            Asr:     row.asrB     || '00:00',
+                            Maghrib: row.maghribB || '00:00',
+                            Isha:    row.ishaB    || '00:00'
+                        });
+                        return;
+                    }
+                    // Fall through to API if no row found for today
+                }
 
+                if (!APP_CONFIG.prayerConfig) return;
                 const { city, country, method, school } = APP_CONFIG.prayerConfig;
                 if (!city || !country) return;
 
-                // Aladhan API Endpoint
                 const apiUrl = `https://api.aladhan.com/v1/timingsByCity?city=${city}&country=${country}&method=${method}&school=${school}`;
-
                 fetch(apiUrl)
                     .then(response => response.json())
                     .then(data => {
                         if (data.code === 200) {
-                            const timings = data.data.timings;
-                            updateDailyPrayerDisplay(timings);
+                            updateDailyPrayerDisplay(data.data.timings);
                         } else {
                             console.error('Error fetching prayer times:', data.status);
                         }
@@ -2133,12 +2171,20 @@
                         if (prayer === 'sunrise') {
                             jamatEl.innerText = "-";
                         } else {
-                            const weekPrayers = getCurrentWeekPrayers();
-                            if (weekPrayers && weekPrayers[prayer]) {
-                                const p = weekPrayers[prayer];
-                                const h = p.h.toString().padStart(2, '0');
-                                const m = p.m.toString().padStart(2, '0');
-                                jamatEl.innerText = `${h}:${m}`;
+                            let jamP = null;
+                            if (APP_CONFIG.jamaatTimesMode === 'upload') {
+                                const row = _getTodayTimetableRow();
+                                if (row && row.fajrJ !== undefined) {
+                                    const jamMap = { fajr: row.fajrJ, dhuhr: row.dhuhrJ, asr: row.asrJ, maghrib: row.maghribJ, isha: row.ishaJ };
+                                    jamP = _parseJamTime(jamMap[prayer]);
+                                }
+                            }
+                            if (!jamP) {
+                                const weekPrayers = getCurrentWeekPrayers();
+                                if (weekPrayers && weekPrayers[prayer]) jamP = weekPrayers[prayer];
+                            }
+                            if (jamP) {
+                                jamatEl.innerText = `${String(jamP.h).padStart(2,'0')}:${String(jamP.m).padStart(2,'0')}`;
                             }
                         }
                     }
