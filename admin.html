@@ -587,10 +587,257 @@
             min-width: 160px;
             margin: 0;
         }
+
+        /* ======== SETUP WIZARD ======== */
+        #setup-wizard {
+            position: fixed; inset: 0; z-index: 8000;
+            background: rgba(5,7,10,0.97);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .wz-card {
+            width: 680px; max-width: 96vw;
+            background: linear-gradient(145deg,#141920,#0a0d12);
+            border: 1px solid var(--gold-primary);
+            border-radius: 20px;
+            box-shadow: 0 0 60px rgba(0,0,0,0.9),0 0 30px rgba(212,175,55,0.08);
+            overflow: hidden;
+        }
+        .wz-header {
+            padding: 22px 28px 18px;
+            border-bottom: 1px solid rgba(212,175,55,0.15);
+            display: flex; align-items: center; gap: 14px;
+        }
+        .wz-header i { font-size: 1.5rem; color: var(--gold-primary); }
+        .wz-header-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
+        .wz-header-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 1px; }
+        .wz-stepper {
+            display: flex; align-items: flex-start; justify-content: center;
+            padding: 20px 28px 0; gap: 0;
+        }
+        .wz-step {
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            flex: 1; min-width: 0;
+        }
+        .wz-step-circle {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.12);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; color: var(--text-muted);
+            transition: all 0.3s; flex-shrink: 0;
+        }
+        .wz-step-label { font-size: 0.68rem; color: var(--text-muted); text-align: center; transition: color 0.3s; white-space: nowrap; }
+        .wz-step.active .wz-step-circle { background: var(--gold-primary); border-color: var(--gold-primary); color: #000; font-weight: 700; box-shadow: 0 0 14px rgba(212,175,55,0.4); }
+        .wz-step.active .wz-step-label { color: var(--gold-primary); font-weight: 600; }
+        .wz-step.done .wz-step-circle { background: #22c55e; border-color: #22c55e; color: #fff; }
+        .wz-step.done .wz-step-label { color: #22c55e; }
+        .wz-connector { height: 2px; background: rgba(255,255,255,0.1); flex: 1; margin-top: 17px; min-width: 8px; transition: background 0.3s; }
+        .wz-connector.done { background: #22c55e; }
+        .wz-connector.active-conn { background: var(--gold-primary); }
+        .wz-panels-viewport { overflow: hidden; }
+        .wz-panels-track { display: flex; transition: transform 0.4s cubic-bezier(0.4,0,0.2,1); }
+        .wz-panel { min-width: 100%; padding: 24px 28px 16px; box-sizing: border-box; }
+        .wz-panel-title { font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .wz-panel-sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 18px; }
+        .wz-field { margin-bottom: 14px; }
+        .wz-field label { display: block; font-size: 0.73rem; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .wz-field input, .wz-field select { width: 100%; padding: 9px 13px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 0.92rem; font-family: var(--font-main); outline: none; box-sizing: border-box; transition: border-color 0.2s; }
+        .wz-field input:focus, .wz-field select:focus { border-color: var(--gold-primary); }
+        .wz-field select option { background: #141920; }
+        .wz-row { display: flex; gap: 12px; }
+        .wz-row .wz-field { flex: 1; }
+        .wz-time-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin-bottom: 8px; }
+        .wz-time-cell { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .wz-time-cell label { font-size: 0.68rem; color: var(--gold-primary); font-weight: 600; text-transform: uppercase; }
+        .wz-time-cell input { width: 100%; padding: 8px 4px; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 0.88rem; outline: none; box-sizing: border-box; }
+        .wz-time-cell input:focus { border-color: var(--gold-primary); }
+        .wz-hint { font-size: 0.76rem; color: var(--text-muted); padding: 8px 12px; background: rgba(255,255,255,0.03); border-left: 3px solid var(--gold-primary); border-radius: 0 6px 6px 0; margin-bottom: 14px; }
+        .wz-done { text-align: center; padding: 28px 28px 16px; }
+        .wz-done-icon { font-size: 3.5rem; color: #22c55e; margin-bottom: 14px; animation: wzPop 0.5s ease; }
+        @keyframes wzPop { 0%{transform:scale(0)} 80%{transform:scale(1.15)} 100%{transform:scale(1)} }
+        .wz-footer { display: flex; justify-content: space-between; align-items: center; padding: 14px 28px 20px; border-top: 1px solid rgba(255,255,255,0.07); }
+        .wz-footer-progress { font-size: 0.78rem; color: var(--text-muted); }
+        .wz-btn { padding: 9px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+        .wz-btn-back { background: rgba(255,255,255,0.07); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
+        .wz-btn-back:hover { background: rgba(255,255,255,0.12); }
+        .wz-btn-next { background: var(--gold-primary); color: #000; }
+        .wz-btn-next:hover { background: var(--gold-light); }
+        .wz-btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 
 <body>
+
+    <!-- ======== FIRST-TIME SETUP WIZARD ======== -->
+    <div id="setup-wizard" style="display:none;">
+        <div class="wz-card">
+            <!-- Header -->
+            <div class="wz-header">
+                <i class="fas fa-mosque"></i>
+                <div>
+                    <div class="wz-header-title">Welcome to FMDisplays</div>
+                    <div class="wz-header-sub">Let's set up your masjid display in a few quick steps</div>
+                </div>
+            </div>
+
+            <!-- Stepper -->
+            <div class="wz-stepper">
+                <div class="wz-step active" id="wz-s0">
+                    <div class="wz-step-circle"><i class="fas fa-mosque"></i></div>
+                    <div class="wz-step-label">Mosque</div>
+                </div>
+                <div class="wz-connector" id="wz-c0"></div>
+                <div class="wz-step" id="wz-s1">
+                    <div class="wz-step-circle"><i class="fas fa-globe"></i></div>
+                    <div class="wz-step-label">Prayer API</div>
+                </div>
+                <div class="wz-connector" id="wz-c1"></div>
+                <div class="wz-step" id="wz-s2">
+                    <div class="wz-step-circle"><i class="fas fa-clock"></i></div>
+                    <div class="wz-step-label">Jamaat</div>
+                </div>
+                <div class="wz-connector" id="wz-c2"></div>
+                <div class="wz-step" id="wz-s3">
+                    <div class="wz-step-circle"><i class="fas fa-star"></i></div>
+                    <div class="wz-step-label">Jumu'ah</div>
+                </div>
+                <div class="wz-connector" id="wz-c3"></div>
+                <div class="wz-step" id="wz-s4">
+                    <div class="wz-step-circle"><i class="fas fa-check"></i></div>
+                    <div class="wz-step-label">Done</div>
+                </div>
+            </div>
+
+            <!-- Panels -->
+            <div class="wz-panels-viewport">
+                <div class="wz-panels-track" id="wz-track">
+
+                    <!-- STEP 0: Mosque Details -->
+                    <div class="wz-panel">
+                        <div class="wz-panel-title"><i class="fas fa-mosque" style="color:var(--gold-primary);margin-right:8px;"></i>Your Mosque</div>
+                        <div class="wz-panel-sub">Enter the details shown on your display screens.</div>
+                        <div class="wz-field">
+                            <label>Mosque / Masjid Name (English) *</label>
+                            <input type="text" id="wz-mosque-name" placeholder="e.g. Masjid Al-Noor" />
+                        </div>
+                        <div class="wz-field">
+                            <label>Mosque Name in Urdu / Arabic (optional)</label>
+                            <input type="text" id="wz-mosque-name-ar" placeholder="e.g. مسجد النور" dir="rtl" style="font-family:var(--font-arabic);" />
+                        </div>
+                        <div class="wz-field">
+                            <label>Town / City (shown on display) *</label>
+                            <input type="text" id="wz-mosque-town" placeholder="e.g. Nottingham" />
+                        </div>
+                    </div>
+
+                    <!-- STEP 1: Prayer API Config -->
+                    <div class="wz-panel">
+                        <div class="wz-panel-title"><i class="fas fa-globe" style="color:var(--gold-primary);margin-right:8px;"></i>Prayer Times API</div>
+                        <div class="wz-panel-sub">Used to automatically fetch Azaan times for your location.</div>
+                        <div class="wz-hint">These settings drive the automatic prayer time calculation. City &amp; Country must match the Aladhan API exactly.</div>
+                        <div class="wz-row">
+                            <div class="wz-field">
+                                <label>City (for API) *</label>
+                                <input type="text" id="wz-api-city" placeholder="e.g. Nottingham" />
+                            </div>
+                            <div class="wz-field">
+                                <label>Country *</label>
+                                <input type="text" id="wz-api-country" placeholder="e.g. GB" />
+                            </div>
+                        </div>
+                        <div class="wz-row">
+                            <div class="wz-field">
+                                <label>Calculation Method</label>
+                                <select id="wz-api-method">
+                                    <option value="1">University of Islamic Sciences, Karachi</option>
+                                    <option value="2">Islamic Society of North America</option>
+                                    <option value="3" selected>Muslim World League</option>
+                                    <option value="4">Umm Al-Qura University, Makkah</option>
+                                    <option value="5">Egyptian General Authority of Survey</option>
+                                    <option value="12">Gulf Region</option>
+                                    <option value="15">Moonsighting Committee Worldwide</option>
+                                    <option value="16">Dubai</option>
+                                </select>
+                            </div>
+                            <div class="wz-field">
+                                <label>Juristic School</label>
+                                <select id="wz-api-school">
+                                    <option value="1" selected>Hanafi</option>
+                                    <option value="0">Shafi / Maliki / Hanbali</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Jamaat Times -->
+                    <div class="wz-panel">
+                        <div class="wz-panel-title"><i class="fas fa-clock" style="color:var(--gold-primary);margin-right:8px;"></i>Jamaat Times</div>
+                        <div class="wz-panel-sub">Set your default congregation times. You can adjust these per week in the admin panel later.</div>
+                        <div class="wz-time-grid">
+                            <div class="wz-time-cell">
+                                <label>Fajr</label>
+                                <input type="time" id="wz-jam-fajr" value="06:30" />
+                            </div>
+                            <div class="wz-time-cell">
+                                <label>Dhuhr</label>
+                                <input type="time" id="wz-jam-dhuhr" value="13:15" />
+                            </div>
+                            <div class="wz-time-cell">
+                                <label>Asr</label>
+                                <input type="time" id="wz-jam-asr" value="16:30" />
+                            </div>
+                            <div class="wz-time-cell">
+                                <label>Maghrib</label>
+                                <input type="time" id="wz-jam-maghrib" value="19:00" />
+                            </div>
+                            <div class="wz-time-cell">
+                                <label>Isha</label>
+                                <input type="time" id="wz-jam-isha" value="21:00" />
+                            </div>
+                        </div>
+                        <div class="wz-hint">These times will be applied across all 4 prayer weeks as a starting point.</div>
+                    </div>
+
+                    <!-- STEP 3: Jumu'ah -->
+                    <div class="wz-panel">
+                        <div class="wz-panel-title"><i class="fas fa-star" style="color:var(--gold-primary);margin-right:8px;"></i>Jumu'ah Times</div>
+                        <div class="wz-panel-sub">Set your Friday Khutbah and prayer schedule.</div>
+                        <div class="wz-row">
+                            <div class="wz-field">
+                                <label>Speech / Bayan Starts</label>
+                                <input type="time" id="wz-jum-speech" value="12:15" />
+                            </div>
+                            <div class="wz-field">
+                                <label>Khutbah Starts</label>
+                                <input type="time" id="wz-jum-khutbah" value="12:30" />
+                            </div>
+                            <div class="wz-field">
+                                <label>Jamaat (Prayer) Time</label>
+                                <input type="time" id="wz-jum-jamaat" value="13:00" />
+                            </div>
+                        </div>
+                        <div class="wz-hint">The Jumu'ah display will automatically appear on Fridays. You can fine-tune all settings in the admin panel.</div>
+                    </div>
+
+                    <!-- STEP 4: Done -->
+                    <div class="wz-panel wz-done">
+                        <div class="wz-done-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="wz-panel-title" style="margin-bottom:8px;">All Set!</div>
+                        <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:20px;">Your mosque has been configured. Head to the admin panel to customise further — upload slides, adjust prayer times per week, and more.</p>
+                    </div>
+
+                </div><!-- /wz-panels-track -->
+            </div><!-- /wz-panels-viewport -->
+
+            <!-- Footer nav -->
+            <div class="wz-footer">
+                <button class="wz-btn wz-btn-back" id="wz-btn-back" onclick="wizardBack()" style="visibility:hidden;">← Back</button>
+                <span class="wz-footer-progress" id="wz-progress">Step 1 of 4</span>
+                <button class="wz-btn wz-btn-next" id="wz-btn-next" onclick="wizardNext()">Next →</button>
+            </div>
+
+        </div><!-- /wz-card -->
+    </div><!-- /setup-wizard -->
 
     <div class="admin-container">
 
@@ -1109,6 +1356,8 @@
                         APP_CONFIG.weeklyPrayers = JSON.parse(JSON.stringify(DEFAULT_CONFIG.weeklyPrayers));
                     }
                     updateStatsUI();
+                } else {
+                    showSetupWizard();
                 }
             });
             ensureBuiltinSlides(); // Seed built-in slides if not yet in Firestore
@@ -1653,6 +1902,152 @@
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-sync"></i> Refresh';
             }
+        }
+
+        // ======== SETUP WIZARD ========
+        let _wizardStep = 0;
+
+        function showSetupWizard() {
+            document.getElementById('setup-wizard').style.display = 'flex';
+            wizardGoTo(0);
+        }
+
+        function hideSetupWizard() {
+            document.getElementById('setup-wizard').style.display = 'none';
+        }
+
+        function wizardGoTo(step) {
+            _wizardStep = step;
+            // Slide the panels
+            document.getElementById('wz-track').style.transform = `translateX(-${step * 100}%)`;
+
+            // Update step circles
+            for (let i = 0; i <= 4; i++) {
+                const el = document.getElementById('wz-s' + i);
+                if (!el) continue;
+                el.classList.remove('active', 'done');
+                if (i < step) el.classList.add('done');
+                else if (i === step) el.classList.add('active');
+            }
+            // Update connectors (0–3)
+            for (let i = 0; i <= 3; i++) {
+                const el = document.getElementById('wz-c' + i);
+                if (!el) continue;
+                el.classList.remove('done', 'active-conn');
+                if (i < step - 1) el.classList.add('done');
+                else if (i === step - 1) el.classList.add('active-conn');
+            }
+
+            // Footer
+            const backBtn = document.getElementById('wz-btn-back');
+            const nextBtn = document.getElementById('wz-btn-next');
+            const progress = document.getElementById('wz-progress');
+            backBtn.style.visibility = step === 0 ? 'hidden' : 'visible';
+            if (step === 4) {
+                progress.textContent = '';
+                nextBtn.textContent = 'Open Admin Panel →';
+            } else if (step === 3) {
+                progress.textContent = `Step ${step + 1} of 4`;
+                nextBtn.textContent = 'Finish & Save ✓';
+            } else {
+                progress.textContent = `Step ${step + 1} of 4`;
+                nextBtn.textContent = 'Next →';
+            }
+            nextBtn.disabled = false;
+        }
+
+        function wizardNext() {
+            if (_wizardStep === 4) {
+                hideSetupWizard();
+                return;
+            }
+            if (_wizardStep === 3) {
+                wizardSave();
+                return;
+            }
+            // Basic validation
+            if (_wizardStep === 0) {
+                const name = document.getElementById('wz-mosque-name').value.trim();
+                const town = document.getElementById('wz-mosque-town').value.trim();
+                if (!name || !town) { alert('Please enter the Mosque Name and Town/City.'); return; }
+            }
+            if (_wizardStep === 1) {
+                const city = document.getElementById('wz-api-city').value.trim();
+                const country = document.getElementById('wz-api-country').value.trim();
+                if (!city || !country) { alert('Please enter the City and Country for prayer times.'); return; }
+            }
+            wizardGoTo(_wizardStep + 1);
+        }
+
+        function wizardBack() {
+            if (_wizardStep > 0) wizardGoTo(_wizardStep - 1);
+        }
+
+        function wizardSave() {
+            const nextBtn = document.getElementById('wz-btn-next');
+            nextBtn.disabled = true;
+            nextBtn.textContent = 'Saving…';
+
+            function parseTime(val) {
+                const parts = (val || '00:00').split(':');
+                return { h: parseInt(parts[0]) || 0, m: parseInt(parts[1]) || 0 };
+            }
+
+            const mName   = document.getElementById('wz-mosque-name').value.trim();
+            const mNameAr = document.getElementById('wz-mosque-name-ar').value.trim();
+            const mTown   = document.getElementById('wz-mosque-town').value.trim();
+
+            const apiCity    = document.getElementById('wz-api-city').value.trim() || mTown;
+            const apiCountry = document.getElementById('wz-api-country').value.trim();
+            const apiMethod  = parseInt(document.getElementById('wz-api-method').value) || 3;
+            const apiSchool  = parseInt(document.getElementById('wz-api-school').value) || 1;
+
+            const prayers = ['fajr','dhuhr','asr','maghrib','isha'];
+            const baseWeek = {};
+            prayers.forEach(p => {
+                const t = parseTime(document.getElementById('wz-jam-' + p).value);
+                baseWeek[p] = { h: t.h, m: t.m };
+            });
+
+            const speech  = parseTime(document.getElementById('wz-jum-speech').value);
+            const khutbah = parseTime(document.getElementById('wz-jum-khutbah').value);
+            const jamaat  = parseTime(document.getElementById('wz-jum-jamaat').value);
+
+            const config = {
+                mosqueName:       mName,
+                mosqueNameAr:     mNameAr,
+                mosqueLocation:   mTown,
+                theme:            'gold',
+                layout:           'classic',
+                countdownMinutes: 15,
+                customColor:      '#7c3aed',
+                prayerConfig: { city: apiCity, country: apiCountry, method: apiMethod, school: apiSchool },
+                weeklyPrayers: [0,1,2,3].map(() => JSON.parse(JSON.stringify(baseWeek))),
+                jummah: {
+                    dayIndex:             5,
+                    startDisplayHour:     10,
+                    startDisplayMinute:   0,
+                    speechHour:           speech.h,
+                    speechMinute:         speech.m,
+                    khutbahHour:          khutbah.h,
+                    khutbahMinute:        khutbah.m,
+                    jamaatHour:           jamaat.h,
+                    jamaatMinute:         jamaat.m,
+                    postPrayerEndHour:    15,
+                    postPrayerEndMinute:  0
+                }
+            };
+
+            tenantRef().set(config).then(() => {
+                // Sync into APP_CONFIG
+                Object.assign(APP_CONFIG, config);
+                updateStatsUI();
+                wizardGoTo(4);
+            }).catch(err => {
+                alert('Error saving: ' + err.message);
+                nextBtn.disabled = false;
+                nextBtn.textContent = 'Finish & Save ✓';
+            });
         }
 
     </script>
