@@ -11,6 +11,24 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Fire TV / AFT device detection — must run before any layout or framework scripts -->
+    <script>
+        (function() {
+            if (/AFT/i.test(navigator.userAgent)) {
+                document.documentElement.setAttribute('data-device', 'firetv');
+                var vp = document.querySelector('meta[name="viewport"]');
+                if (vp) {
+                    vp.setAttribute('content', 'width=1920, initial-scale=1.0');
+                } else {
+                    var meta = document.createElement('meta');
+                    meta.name = 'viewport';
+                    meta.content = 'width=1920, initial-scale=1.0';
+                    document.head.appendChild(meta);
+                }
+            }
+        })();
+    </script>
+
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -1248,6 +1266,38 @@
                 font-size: 1.8rem;
             }
         }
+
+        /* --- FIRE TV FORCED DESKTOP LAYOUT --- */
+        /* Overrides responsive breakpoints when running on Amazon Fire TV / Fire Stick (UA contains "AFT") */
+        html[data-device="firetv"] body {
+            min-width: 1920px;
+        }
+
+        html[data-device="firetv"] .container {
+            max-width: 1920px;
+        }
+
+        html[data-device="firetv"] .main-content {
+            flex-direction: row !important;
+            padding: 30px !important;
+            gap: 40px !important;
+        }
+
+        html[data-device="firetv"] .schedule-panel {
+            flex: 0 0 40% !important;
+            width: auto !important;
+        }
+
+        html[data-device="firetv"] .media-panel {
+            min-height: unset !important;
+        }
+
+        /* --- DISABLE GPU-HEAVY KEN BURNS IN ANDROID WEBVIEW APP --- */
+        /* The Android MainActivity injects data-app="1" on <body> via JS on pageFinished */
+        body[data-app] .slide.active .slide-content {
+            animation: none !important;
+            transform: none !important;
+        }
     </style>
 </head>
 
@@ -1488,6 +1538,13 @@
             const loadingMessage = document.getElementById('loading-message');
             // --- STATE VARIABLES ---
             let currentAnimationFrame = null;
+            let currentInterval = null;         // 4g: setInterval handle (replaces requestAnimationFrame)
+            let dataGeneration = 0;             // 4c: incremented on every reinit — stale async callbacks check this
+            let reinitTimer = null;             // 4b: slides 800ms debounce handle
+            let settingsReinitTimer = null;     // 4e: settings 300ms debounce handle
+            let pendingTimers = [];             // 4d: timers scheduled inside initSlideshowFromConfig
+            let _lastSlidesJson = null;         // 4a: change detection for slides
+            let _lastSettingsJson = null;       // 4a/4e: change detection for settings
             let dynamicSlides = [];
             let currentSlideIndex = 0;
 
@@ -1620,19 +1677,23 @@
                 seedBuiltinSlides();     // Ensure built-in slides exist in Firestore
 
                 updateClock();
-                setInterval(updateClock, CONSTANTS.CLOCK_UPDATE_INTERVAL);
+                // 4f: try-catch on every setInterval callback
+                setInterval(function() {
+                    try { updateClock(); } catch(e) { console.error('Clock error:', e); }
+                }, CONSTANTS.CLOCK_UPDATE_INTERVAL);
+
                 fetchPrayerTimes(); // Fetch immediately
-                // Refetch prayers every hour to ensure date changes are handled
-                setInterval(fetchPrayerTimes, 60 * 60 * 1000);
+                setInterval(function() {
+                    try { fetchPrayerTimes(); } catch(e) { console.error('Prayer fetch error:', e); }
+                }, 60 * 60 * 1000);
 
                 // Start Countdown Loop
-                setInterval(checkPrayerCountdown, 1000);
+                setInterval(function() {
+                    try { checkPrayerCountdown(); } catch(e) { console.error('Countdown error:', e); }
+                }, 1000);
                 checkPrayerCountdown(); // check immediately
 
                 // --- AUTO-SYNC KEEP-ALIVE (every 10 min) ---
-                // Smart TVs and browsers may freeze WebSocket / long-poll connections after
-                // long idle periods. This force-fetches fresh settings from Firestore every
-                // 10 minutes, guaranteeing changes made on admin always appear within 10 min.
                 setInterval(forceResync, 10 * 60 * 1000);
             }
 
@@ -1687,73 +1748,114 @@
              * Sets up Firebase real-time listeners for settings and slides
              */
             function setupRealtimeListener() {
-                // 1. Listen to SETTINGS (Timings, Theme, Layout) - with error handler
+                // --- SETTINGS LISTENER (4e: 300ms debounce + per-field change detection) ---
                 const _unsubSettings = tenantRef()
                     .onSnapshot((doc) => {
-                        if (doc.exists) {
-                            const data = doc.data();
-                            APP_CONFIG.jummah = data.jummah || DEFAULT_CONFIG.jummah;
-                            APP_CONFIG.theme = data.theme || DEFAULT_CONFIG.theme;
-                            APP_CONFIG.layout = data.layout || DEFAULT_CONFIG.layout;
-                            APP_CONFIG.prayerConfig = data.prayerConfig || DEFAULT_CONFIG.prayerConfig;
-                            APP_CONFIG.countdownMinutes = (data.countdownMinutes !== undefined) ? data.countdownMinutes : 15;
-                            APP_CONFIG.customColor = data.customColor || '#d4af37';
-                            // Mosque identity
-                            APP_CONFIG.mosqueName = data.mosqueName || '';
-                            APP_CONFIG.mosqueLocation = data.mosqueLocation || '';
-                            APP_CONFIG.mosqueNameAr = data.mosqueNameAr || '';
-                            const nameEl = document.getElementById('mosque-name');
-                            const locEl = document.getElementById('mosque-location');
-                            if (nameEl && APP_CONFIG.mosqueName) nameEl.textContent = APP_CONFIG.mosqueName;
-                            if (locEl && APP_CONFIG.mosqueLocation) locEl.textContent = APP_CONFIG.mosqueLocation;
-                            if (APP_CONFIG.mosqueName) document.title = APP_CONFIG.mosqueName + ' Display';
-                            // Load week-based jamaat times (supports migration from old dailyPrayers)
-                            if (data.weeklyPrayers && Array.isArray(data.weeklyPrayers) && data.weeklyPrayers.length === 4) {
-                                APP_CONFIG.weeklyPrayers = data.weeklyPrayers;
-                            } else if (data.dailyPrayers) {
-                                APP_CONFIG.weeklyPrayers = [0,1,2,3].map(() => JSON.parse(JSON.stringify(data.dailyPrayers)));
-                                APP_CONFIG.dailyPrayers = data.dailyPrayers;
-                            }
-                            APP_CONFIG.prayerTimesMode = data.prayerTimesMode || 'auto';
-                            APP_CONFIG.jamaatTimesMode  = data.jamaatTimesMode  || 'manual';
-                            APP_CONFIG.annualTimetable  = data.annualTimetable  || [];
-
-                            updateJummahTimesDisplay();
-                            updateClock();
-                            applyTheme(APP_CONFIG.theme);   // Apply saved theme
-                            applyLayout(APP_CONFIG.layout); // Apply saved layout
-                            fetchPrayerTimes(); // Re-fetch with new settings
-                        } else {
+                        if (!doc.exists) {
                             tenantRef().set({
                                 jummah: DEFAULT_CONFIG.jummah,
                                 theme: DEFAULT_CONFIG.theme,
                                 layout: DEFAULT_CONFIG.layout,
                                 prayerConfig: DEFAULT_CONFIG.prayerConfig
                             });
+                            return;
                         }
+
+                        const data = doc.data();
+
+                        // 4a / 4e: Change detection — skip if nothing changed
+                        const newSettingsJson = JSON.stringify(data);
+                        if (newSettingsJson === _lastSettingsJson) return;
+                        _lastSettingsJson = newSettingsJson;
+
+                        // 4e: 300ms debounce (Firestore fires local write echo + server confirm)
+                        if (settingsReinitTimer) clearTimeout(settingsReinitTimer);
+                        settingsReinitTimer = setTimeout(function() {
+                            settingsReinitTimer = null;
+
+                            // Snapshot previous values for per-field comparison
+                            const prevTheme = APP_CONFIG.theme;
+                            const prevLayout = APP_CONFIG.layout;
+                            const prevCustomColor = APP_CONFIG.customColor;
+                            const prevPrayerConfigJson = JSON.stringify(APP_CONFIG.prayerConfig);
+
+                            // Apply all config fields
+                            APP_CONFIG.jummah = data.jummah || DEFAULT_CONFIG.jummah;
+                            APP_CONFIG.theme = data.theme || DEFAULT_CONFIG.theme;
+                            APP_CONFIG.layout = data.layout || DEFAULT_CONFIG.layout;
+                            APP_CONFIG.prayerConfig = data.prayerConfig || DEFAULT_CONFIG.prayerConfig;
+                            APP_CONFIG.countdownMinutes = (data.countdownMinutes !== undefined) ? data.countdownMinutes : 15;
+                            APP_CONFIG.customColor = data.customColor || '#d4af37';
+                            APP_CONFIG.mosqueName = data.mosqueName || '';
+                            APP_CONFIG.mosqueLocation = data.mosqueLocation || '';
+                            APP_CONFIG.mosqueNameAr = data.mosqueNameAr || '';
+                            APP_CONFIG.prayerTimesMode = data.prayerTimesMode || 'auto';
+                            APP_CONFIG.jamaatTimesMode  = data.jamaatTimesMode  || 'manual';
+                            APP_CONFIG.annualTimetable  = data.annualTimetable  || [];
+
+                            if (data.weeklyPrayers && Array.isArray(data.weeklyPrayers) && data.weeklyPrayers.length === 4) {
+                                APP_CONFIG.weeklyPrayers = data.weeklyPrayers;
+                            } else if (data.dailyPrayers) {
+                                APP_CONFIG.weeklyPrayers = [0,1,2,3].map(() => JSON.parse(JSON.stringify(data.dailyPrayers)));
+                                APP_CONFIG.dailyPrayers = data.dailyPrayers;
+                            }
+
+                            // Update DOM identity fields (cheap, always safe)
+                            const nameEl = document.getElementById('mosque-name');
+                            const locEl  = document.getElementById('mosque-location');
+                            if (nameEl && APP_CONFIG.mosqueName) nameEl.textContent = APP_CONFIG.mosqueName;
+                            if (locEl  && APP_CONFIG.mosqueLocation) locEl.textContent = APP_CONFIG.mosqueLocation;
+                            if (APP_CONFIG.mosqueName) document.title = APP_CONFIG.mosqueName + ' Display';
+
+                            updateJummahTimesDisplay();
+                            updateClock();
+
+                            // 4e: Only re-apply theme/layout/prayer if they actually changed
+                            if (APP_CONFIG.theme !== prevTheme || APP_CONFIG.customColor !== prevCustomColor) {
+                                applyTheme(APP_CONFIG.theme);
+                            }
+                            if (APP_CONFIG.layout !== prevLayout) {
+                                applyLayout(APP_CONFIG.layout);
+                            }
+                            if (JSON.stringify(APP_CONFIG.prayerConfig) !== prevPrayerConfigJson) {
+                                fetchPrayerTimes();
+                            }
+                        }, 300);
+
                     }, (error) => {
-                        console.error("Error getting settings: ", error);
+                        console.error("Settings listener error:", error);
                     });
 
-                // 2. Listen to SLIDES (Separate Collection for Unlimited Storage)
+                // --- SLIDES LISTENER (4a: change detection + 4b: 800ms debounce) ---
                 const _unsubSlides = slidesRef().orderBy("order", "asc")
                     .onSnapshot((snapshot) => {
-                        APP_CONFIG.slides = [];
+                        const newSlides = [];
                         snapshot.forEach((doc) => {
-                            const s = doc.data();
-                            // Add ID so we can update/delete later
-                            APP_CONFIG.slides.push({ ...s, id: doc.id });
+                            newSlides.push({ ...doc.data(), id: doc.id });
                         });
 
+                        // 4a: Change detection — only reinit if slide data actually changed
+                        const newSlidesJson = JSON.stringify(newSlides.map(function(s) {
+                            return { id: s.id, url: s.url, visible: s.visible, order: s.order, builtin: s.builtin };
+                        }));
+                        if (newSlidesJson === _lastSlidesJson) return;
+                        _lastSlidesJson = newSlidesJson;
 
-                        initSlideshowFromConfig(); // Reload slideshow
+                        // 4b: 800ms debounce — Firestore fires local echo + server confirm in rapid succession
+                        if (reinitTimer) clearTimeout(reinitTimer);
+                        reinitTimer = setTimeout(function() {
+                            reinitTimer = null;
+                            APP_CONFIG.slides = newSlides;
+                            initSlideshowFromConfig();
+                        }, 800);
 
                         if (snapshot.empty) {
                             console.log("No slides found in collection.");
                         }
                     }, (error) => {
-                        console.error("Error getting slides: ", error);
+                        console.error("Slides listener error:", error);
                     });
+
                 _unsubListeners.push(_unsubSettings, _unsubSlides);
             }
 
@@ -1887,8 +1989,16 @@
              * Creates slide elements from dynamic slides and prepares animation
              */
             function initSlideshowFromConfig() {
-                // Stop existing animation
-                if (currentAnimationFrame) cancelAnimationFrame(currentAnimationFrame);
+                // 4d: Cancel any timers outstanding from the previous reinit cycle
+                pendingTimers.forEach(function(id) { clearTimeout(id); });
+                pendingTimers = [];
+
+                // 4c: Generation counter — any async callbacks from a previous call will bail out
+                const myGeneration = ++dataGeneration;
+
+                // Stop existing animation (both interval and legacy rAF handles)
+                if (currentInterval) { clearInterval(currentInterval); currentInterval = null; }
+                if (currentAnimationFrame) { cancelAnimationFrame(currentAnimationFrame); currentAnimationFrame = null; }
 
                 // Clear previous slides from DOM
                 dynamicSlides.forEach(el => el.remove());
@@ -1937,11 +2047,13 @@
 
                     const img = new Image();
                     img.onload = () => {
+                        if (myGeneration !== dataGeneration) return; // 4c: stale, newer reinit started
                         bgLayer.style.backgroundImage = `url('${slideItem.url}')`;
                         contentLayer.style.backgroundImage = `url('${slideItem.url}')`;
                         checkAllLoaded();
                     };
                     img.onerror = () => {
+                        if (myGeneration !== dataGeneration) return; // 4c: stale
                         console.warn(`Failed to load: ${slideItem.url}`);
                         checkAllLoaded();
                     };
@@ -1966,6 +2078,7 @@
                 });
 
                 function finalize() {
+                    if (myGeneration !== dataGeneration) return; // 4c: a newer reinit has already started
                     loadingMessage.style.display = 'none';
                     slideElements.forEach(el => {
                         slideshowContainer.appendChild(el);
@@ -1988,11 +2101,9 @@
              * @param {HTMLElement[]} allSlides - Array of slide elements to animate
              */
             function startSlideshowAnimation(allSlides) {
-                // Cancel any existing animation to prevent memory leaks
-                if (currentAnimationFrame) {
-                    cancelAnimationFrame(currentAnimationFrame);
-                    currentAnimationFrame = null;
-                }
+                // 4f/4g: Clear both interval and legacy rAF handles
+                if (currentInterval) { clearInterval(currentInterval); currentInterval = null; }
+                if (currentAnimationFrame) { cancelAnimationFrame(currentAnimationFrame); currentAnimationFrame = null; }
 
                 currentSlideIndex = 0;
 
@@ -2003,33 +2114,53 @@
 
                 allSlides[0].classList.add('active');
 
+                if (allSlides.length <= 1) {
+                    if (progressBar) progressBar.style.display = 'none';
+                    return;
+                }
+
+                if (progressBar) progressBar.style.display = 'block';
                 let startTime = Date.now();
 
-                function animate() {
-                    const now = Date.now();
-                    const elapsed = now - startTime;
-                    const progress = Math.min((elapsed / CONSTANTS.SLIDE_DURATION) * 100, 100);
+                // 4g: Use setInterval(250ms) instead of requestAnimationFrame.
+                // rAF fires 60×/sec = 7200 DOM writes/min on an already-throttled Fire Stick CPU.
+                // 250ms (4×/sec) is imperceptible for a progress bar and saves massive CPU.
+                // 4f: Wrap entire body in try-catch with auto-restart on error.
+                currentInterval = setInterval(function() {
+                    try {
+                        // 4f: Bounds guard before index access
+                        if (currentSlideIndex < 0 || currentSlideIndex >= allSlides.length) {
+                            currentSlideIndex = 0;
+                            return;
+                        }
 
-                    if (progressBar) progressBar.style.width = progress + "%";
+                        const elapsed = Date.now() - startTime;
+                        const progress = Math.min((elapsed / CONSTANTS.SLIDE_DURATION) * 100, 100);
+                        if (progressBar) progressBar.style.width = progress + '%';
 
-                    if (elapsed >= CONSTANTS.SLIDE_DURATION) {
-                        allSlides[currentSlideIndex].classList.remove('active');
-                        currentSlideIndex = (currentSlideIndex + 1) % allSlides.length;
-                        allSlides[currentSlideIndex].classList.add('active');
-
-                        startTime = Date.now();
-                        if (progressBar) progressBar.style.width = "0%";
+                        if (elapsed >= CONSTANTS.SLIDE_DURATION) {
+                            allSlides[currentSlideIndex].classList.remove('active');
+                            currentSlideIndex = (currentSlideIndex + 1) % allSlides.length;
+                            // Bounds guard after increment
+                            if (currentSlideIndex < 0 || currentSlideIndex >= allSlides.length) {
+                                currentSlideIndex = 0;
+                            }
+                            allSlides[currentSlideIndex].classList.add('active');
+                            startTime = Date.now();
+                            if (progressBar) progressBar.style.width = '0%';
+                        }
+                    } catch (err) {
+                        // 4f: On error, stop and restart after 2 seconds
+                        console.error('Slideshow animation error, restarting in 2s:', err);
+                        clearInterval(currentInterval);
+                        currentInterval = null;
+                        setTimeout(function() {
+                            if (!currentInterval && allSlides.length > 0) {
+                                startSlideshowAnimation(allSlides);
+                            }
+                        }, 2000);
                     }
-
-                    currentAnimationFrame = requestAnimationFrame(animate);
-                }
-
-                if (allSlides.length > 1) {
-                    progressBar.style.display = 'block';
-                    currentAnimationFrame = requestAnimationFrame(animate);
-                } else {
-                    progressBar.style.display = 'none';
-                }
+                }, 250);
             }
 
             // --- JUMMAH TIMES DISPLAY ---
