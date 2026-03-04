@@ -759,7 +759,7 @@
                     <div class="wz-panel">
                         <div class="wz-panel-title"><i class="fas fa-globe" style="color:var(--gold-primary);margin-right:8px;"></i>Prayer Times API</div>
                         <div class="wz-panel-sub">Used to automatically fetch Azaan times for your location.</div>
-                        <div class="wz-hint">These settings drive the automatic prayer time calculation. City &amp; Country must match the Aladhan API exactly.</div>
+                        <div class="wz-hint">These settings drive the automatic prayer time calculation. City &amp; Country must match your location exactly.</div>
                         <div class="wz-row">
                             <div class="wz-field">
                                 <label>City (for API) *</label>
@@ -1211,7 +1211,7 @@
                     <!-- Mode selector -->
                     <div class="mode-toggle-group" style="margin-bottom:20px;">
                         <button class="mode-toggle-btn active" id="prayer-mode-btn-auto" onclick="setPrayerMode('auto')">
-                            <i class="fas fa-satellite-dish"></i> Automatic (Aladhan API)
+                            <i class="fas fa-satellite-dish"></i> Automatic
                         </button>
                         <button class="mode-toggle-btn" id="prayer-mode-btn-upload" onclick="setPrayerMode('upload')">
                             <i class="fas fa-file-csv"></i> Upload Annual Timetable
@@ -1221,7 +1221,7 @@
                     <!-- AUTO section -->
                     <div id="prayer-auto-section" class="mode-section visible">
                         <p style="color:var(--gold-primary); margin-bottom:20px; font-size:0.87rem;">
-                            <i class="fas fa-satellite-dish"></i> Prayer begin times fetched automatically from the Aladhan API based on your location.
+                            <i class="fas fa-satellite-dish"></i> Prayer begin times fetched automatically based on your location.
                         </p>
                         <div class="form-group">
                             <label>City</label>
@@ -1255,7 +1255,7 @@
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                                 <div>
                                     <div style="font-weight:600; color:var(--text-white);"><i class="fas fa-table" style="color:var(--gold-primary);"></i> Prayer Timetable Preview</div>
-                                    <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">Begin times from Aladhan for this month &mdash; W1&ndash;W4 shows which week config applies</div>
+                                    <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">Automatic begin times for this month &mdash; W1&ndash;W4 shows which week config applies</div>
                                 </div>
                                 <button class="btn btn-secondary" onclick="loadTimetable()" id="btn-load-timetable" style="padding:8px 14px; font-size:0.82rem; white-space:nowrap;">
                                     <i class="fas fa-table"></i> Load
