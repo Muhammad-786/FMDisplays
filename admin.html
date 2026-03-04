@@ -633,7 +633,7 @@
                 <div class="display-url-bar">
                     <i class="fas fa-tv" style="color:#4ade80;font-size:1.2rem;flex-shrink:0;"></i>
                     <div style="flex:1;min-width:0;">
-                        <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;">Open this URL on your mosque TV / display screen:</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;">Open this URL on your mosque TV / display screen, then sign in with your account:</div>
                         <code id="display-url-text">Generating...</code>
                     </div>
                     <button class="btn btn-secondary" onclick="copyDisplayUrl(event)" style="padding:7px 14px;font-size:0.82rem;flex-shrink:0;">
@@ -1036,7 +1036,7 @@
             if (user) {
                 currentUid = user.uid;
                 const _base = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
-                const _displayUrl = _base + 'index.html?id=' + user.uid;
+                const _displayUrl = _base + 'index.html';
                 document.getElementById('display-url-text').textContent = _displayUrl;
                 document.getElementById('open-display-btn').href = _displayUrl;
                 document.getElementById('login-view').style.display = 'none';

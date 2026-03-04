@@ -1253,12 +1253,22 @@
 
 <body>
 
-    <!-- NO MOSQUE ID SCREEN -->
-    <div id="no-mosque-screen" style="display:none;position:fixed;inset:0;background:#0f1316;z-index:9999;align-items:center;justify-content:center;flex-direction:column;text-align:center;color:#fff;">
-        <i class="fas fa-mosque" style="font-size:4rem;color:#d4af37;margin-bottom:20px;"></i>
-        <h2 style="font-size:1.8rem;margin-bottom:12px;">Mosque Display System</h2>
-        <p style="color:#8b9bb4;margin-bottom:16px;">No mosque ID found. Use the URL provided by your administrator.</p>
-        <code style="color:#d4af37;font-size:1rem;">index.html?id=YOUR_ID</code>
+    <!-- DISPLAY LOGIN SCREEN -->
+    <div id="display-login-screen" style="display:flex;position:fixed;inset:0;background:#0a0d10;z-index:9999;align-items:center;justify-content:center;flex-direction:column;">
+        <div style="background:#141920;border:1px solid #2a3441;border-radius:16px;padding:48px 40px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.6);text-align:center;">
+            <i class="fas fa-mosque" style="font-size:3rem;color:#d4af37;margin-bottom:16px;"></i>
+            <h2 style="color:#fff;font-size:1.6rem;margin-bottom:4px;">Mosque Display</h2>
+            <p style="color:#8b9bb4;margin-bottom:32px;font-size:0.9rem;">Sign in to load your mosque content</p>
+            <input type="email" id="display-email" placeholder="Email" autocomplete="username"
+                style="width:100%;padding:12px 16px;border-radius:8px;border:1px solid #2a3441;background:#0f1316;color:#fff;font-size:1rem;margin-bottom:12px;box-sizing:border-box;outline:none;">
+            <input type="password" id="display-password" placeholder="Password" autocomplete="current-password"
+                style="width:100%;padding:12px 16px;border-radius:8px;border:1px solid #2a3441;background:#0f1316;color:#fff;font-size:1rem;margin-bottom:8px;box-sizing:border-box;outline:none;">
+            <p id="display-login-error" style="color:#ff6b6b;font-size:0.85rem;margin-bottom:12px;display:none;"></p>
+            <button id="display-login-btn" onclick="loginDisplay()"
+                style="width:100%;padding:13px;border-radius:8px;background:#d4af37;color:#0a0d10;font-weight:700;font-size:1rem;border:none;cursor:pointer;">
+                Sign In
+            </button>
+        </div>
     </div>
 
     <header>
@@ -1388,11 +1398,46 @@
             const db = firebase.firestore();
             const auth = firebase.auth();
 
-            // --- MULTI-TENANT: parse mosque ID from URL ---
-            const _urlParams = new URLSearchParams(window.location.search);
-            const MOSQUE_ID = _urlParams.get('id');
-            function tenantRef() { return db.collection('tenants').doc(MOSQUE_ID); }
+            // --- MULTI-TENANT: auth-based tenant ID ---
+            let currentUid = null;
+            let _unsubListeners = [];
+            function tenantRef() { return db.collection('tenants').doc(currentUid); }
             function slidesRef() { return tenantRef().collection('slides'); }
+
+            function loginDisplay() {
+                const email = document.getElementById('display-email').value;
+                const pass = document.getElementById('display-password').value;
+                const btn = document.getElementById('display-login-btn');
+                const err = document.getElementById('display-login-error');
+                err.style.display = 'none';
+                btn.disabled = true; btn.textContent = 'Signing in...';
+                auth.signInWithEmailAndPassword(email, pass)
+                    .catch((e) => {
+                        err.textContent = e.message; err.style.display = 'block';
+                        btn.disabled = false; btn.textContent = 'Sign In';
+                    });
+            }
+
+            // Enter key submits login
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && document.getElementById('display-login-screen').style.display !== 'none') loginDisplay();
+            });
+
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUid = user.uid;
+                    document.getElementById('display-login-screen').style.display = 'none';
+                    initApp();
+                } else {
+                    // Clean up any live listeners
+                    _unsubListeners.forEach(fn => fn());
+                    _unsubListeners = [];
+                    _appInitialized = false;
+                    currentUid = null;
+                    APP_CONFIG = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+                    document.getElementById('display-login-screen').style.display = 'flex';
+                }
+            });
 
             // --- CONSTANTS (Avoid Magic Numbers) ---
             const CONSTANTS = {
@@ -1598,11 +1643,10 @@
             /**
              * Initializes the application - sets up listeners and starts clock
              */
+            let _appInitialized = false;
             function initApp() {
-                if (!MOSQUE_ID) {
-                    document.getElementById('no-mosque-screen').style.display = 'flex';
-                    return;
-                }
+                if (_appInitialized) return;
+                _appInitialized = true;
                 setupRealtimeListener(); // Connect to Cloud
                 seedBuiltinSlides();     // Ensure built-in slides exist in Firestore
 
@@ -1671,7 +1715,7 @@
              */
             function setupRealtimeListener() {
                 // 1. Listen to SETTINGS (Timings, Theme, Layout) - with error handler
-                tenantRef()
+                const _unsubSettings = tenantRef()
                     .onSnapshot((doc) => {
                         if (doc.exists) {
                             const data = doc.data();
@@ -1716,7 +1760,7 @@
                     });
 
                 // 2. Listen to SLIDES (Separate Collection for Unlimited Storage)
-                slidesRef().orderBy("order", "asc")
+                const _unsubSlides = slidesRef().orderBy("order", "asc")
                     .onSnapshot((snapshot) => {
                         APP_CONFIG.slides = [];
                         snapshot.forEach((doc) => {
@@ -1734,6 +1778,7 @@
                     }, (error) => {
                         console.error("Error getting slides: ", error);
                     });
+                _unsubListeners.push(_unsubSettings, _unsubSlides);
             }
 
 
