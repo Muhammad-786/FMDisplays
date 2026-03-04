@@ -1027,6 +1027,7 @@
         let APP_CONFIG = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
 
         let currentUid = null;
+        let _unsubscribeSlides = null;
         function tenantRef() { return db.collection('tenants').doc(currentUid); }
         function slidesRef() { return tenantRef().collection('slides'); }
 
@@ -1044,7 +1045,9 @@
                 document.getElementById('user-email').innerText = user.email;
                 loadSettings();
             } else {
+                if (_unsubscribeSlides) { _unsubscribeSlides(); _unsubscribeSlides = null; }
                 currentUid = null;
+                APP_CONFIG = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
                 document.getElementById('login-view').style.display = 'block';
                 document.getElementById('settings-view').style.display = 'none';
                 document.getElementById('auth-controls').style.display = 'none';
@@ -1109,7 +1112,8 @@
                 }
             });
             ensureBuiltinSlides(); // Seed built-in slides if not yet in Firestore
-            slidesRef().orderBy("order", "asc").onSnapshot((snapshot) => {
+            if (_unsubscribeSlides) { _unsubscribeSlides(); }
+            _unsubscribeSlides = slidesRef().orderBy("order", "asc").onSnapshot((snapshot) => {
                 APP_CONFIG.slides = [];
                 snapshot.forEach((doc) => { APP_CONFIG.slides.push({ ...doc.data(), id: doc.id }); });
                 renderSlideList();
