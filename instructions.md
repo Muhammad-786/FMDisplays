@@ -447,8 +447,8 @@ https://api.aladhan.com/v1/timingsByCity?city={city}&country={country}&method={m
 
 | Problem | Solution |
 |---|---|
-| Prayer times not showing | Check city/country in API Settings; verify internet |
-| Wrong Asr time | Set juristic method to Hanafi in API Settings |
+| Prayer times not showing | Check city/country in Prayer Settings; verify internet |
+| Wrong Asr time | Set juristic method to Hanafi in Prayer Settings |
 | Jummah card not showing | Only appears on Fridays; check system date |
 | Slideshow not moving | Add at least one visible slide in admin |
 | Stale data after TV wake | Wait up to 10 min for auto re-fetch, or hard-refresh |
@@ -596,10 +596,11 @@ Edit the CSS variables at the top of `index.html` for deeper colour customisatio
 
 **v4.1 — March 2026**
 - "API Settings" tab renamed to **Prayer Settings**
-- Prayer times embed widget — `<iframe>` code generated in admin, loads prayer table without slideshow or login
-- Firebase config removed from source code; injected at deploy time via `FIREBASE_CONFIG` GitHub Secret
-- GitHub Actions deploy workflow updated to inject config before publishing to GitHub Pages
+- Prayer times embed widget — `<iframe>` code generated in admin, loads prayer table without slideshow or login; visitors never need to log in
+- Embed widget: compact CSS (reduced padding/font sizes) so all content fits without scrolling; iframe 560×660 px
+- Removed display URL bar from admin settings view
 - Fixed JS crash on admin load caused by removed display URL bar element
+- GitHub Actions deploy workflow simplified: publishes repo root directly to GitHub Pages
 
 **v4.0 — March 2026**
 - Multi-screen slideshow sync (epoch-based — all TVs always show the same slide)
