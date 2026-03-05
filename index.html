@@ -2113,7 +2113,9 @@
             }
 
             /**
-             * Starts the slideshow animation with proper cleanup
+             * Starts the slideshow animation with proper cleanup.
+             * Uses epoch-based slide index so all screens always show the same slide
+             * simultaneously (deterministic: Math.floor(Date.now() / SLIDE_DURATION) % n).
              * @param {HTMLElement[]} allSlides - Array of slide elements to animate
              */
             function startSlideshowAnimation(allSlides) {
@@ -2121,14 +2123,14 @@
                 if (currentInterval) { clearInterval(currentInterval); currentInterval = null; }
                 if (currentAnimationFrame) { cancelAnimationFrame(currentAnimationFrame); currentAnimationFrame = null; }
 
-                currentSlideIndex = 0;
-
                 // Reset all
                 document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
 
                 if (allSlides.length === 0) return;
 
-                allSlides[0].classList.add('active');
+                // Sync: derive initial slide from shared wall-clock epoch so all screens start on the same slide
+                currentSlideIndex = Math.floor(Date.now() / CONSTANTS.SLIDE_DURATION) % allSlides.length;
+                allSlides[currentSlideIndex].classList.add('active');
 
                 if (allSlides.length <= 1) {
                     if (progressBar) progressBar.style.display = 'none';
@@ -2136,12 +2138,9 @@
                 }
 
                 if (progressBar) progressBar.style.display = 'block';
-                let startTime = Date.now();
 
-                // 4g: Use setInterval(250ms) instead of requestAnimationFrame.
-                // rAF fires 60×/sec = 7200 DOM writes/min on an already-throttled Fire Stick CPU.
-                // 250ms (4×/sec) is imperceptible for a progress bar and saves massive CPU.
-                // 4f: Wrap entire body in try-catch with auto-restart on error.
+                // 4g: 250ms interval — efficient for progress bar, imperceptible lag for slide transitions.
+                // Sync: epoch index ensures every screen picks the same slide at the same wall-clock second.
                 currentInterval = setInterval(function() {
                     try {
                         // 4f: Bounds guard before index access
@@ -2150,19 +2149,22 @@
                             return;
                         }
 
-                        const elapsed = Date.now() - startTime;
-                        const progress = Math.min((elapsed / CONSTANTS.SLIDE_DURATION) * 100, 100);
+                        const now = Date.now();
+                        // Progress within the current slide's time slot
+                        const withinSlot = now % CONSTANTS.SLIDE_DURATION;
+                        const progress = Math.min((withinSlot / CONSTANTS.SLIDE_DURATION) * 100, 100);
                         if (progressBar) progressBar.style.width = progress + '%';
 
-                        if (elapsed >= CONSTANTS.SLIDE_DURATION) {
+                        // Advance when the epoch index changes (same moment on all screens)
+                        const epochIdx = Math.floor(now / CONSTANTS.SLIDE_DURATION) % allSlides.length;
+                        if (epochIdx !== currentSlideIndex) {
                             allSlides[currentSlideIndex].classList.remove('active');
-                            currentSlideIndex = (currentSlideIndex + 1) % allSlides.length;
-                            // Bounds guard after increment
+                            currentSlideIndex = epochIdx;
+                            // Bounds guard after assignment
                             if (currentSlideIndex < 0 || currentSlideIndex >= allSlides.length) {
                                 currentSlideIndex = 0;
                             }
                             allSlides[currentSlideIndex].classList.add('active');
-                            startTime = Date.now();
                             if (progressBar) progressBar.style.width = '0%';
                         }
                     } catch (err) {

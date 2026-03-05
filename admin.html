@@ -44,13 +44,13 @@
             font-family: var(--font-main);
             min-height: 100vh;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
         }
 
         .admin-container {
-            width: 800px;
-            max-width: 95%;
+            width: 95%;
+            max-width: 800px;
             background: linear-gradient(145deg, rgba(30, 30, 30, 0.9) 0%, rgba(10, 10, 10, 0.95) 100%);
             border: 1px solid var(--gold-primary);
             border-radius: 20px;
@@ -59,6 +59,7 @@
             flex-direction: column;
             overflow: hidden;
             height: 90vh;
+            margin: 20px auto;
         }
 
         .admin-header {
@@ -688,6 +689,58 @@
         .csv-preview-table th { color: var(--gold-primary); text-align: left; padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-weight: 600; }
         .csv-preview-table td { color: var(--text-muted); padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
         .csv-preview-table tr:hover td { color: #fff; }
+
+        /* Prayer times grid layout (inside week tabs) */
+        .prayer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px 16px;
+            margin-bottom: 4px;
+        }
+        .prayer-grid .form-group { margin-bottom: 0; }
+
+        /* Dark-mode time picker */
+        input[type="time"] { color-scheme: dark; }
+
+        /* ===== MOBILE RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .admin-container {
+                width: 100%;
+                max-width: 100%;
+                min-height: 100vh;
+                height: auto;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                overflow: visible;
+                margin: 0;
+            }
+            .admin-body {
+                overflow-y: visible;
+                padding: 16px;
+            }
+            .admin-header { padding: 14px 16px; }
+            .admin-header h2 { font-size: 1.1rem; }
+            .btn { min-height: 44px; }
+            .tab-btn { padding: 10px 12px; font-size: 0.85rem; }
+            .mosq-info-bar { flex-direction: column; }
+            .display-url-bar { flex-direction: column; align-items: flex-start; }
+            .display-url-bar code { width: 100%; }
+            .mode-toggle-group { flex-direction: column; }
+            .mode-toggle-btn {
+                border-right: none;
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+                padding: 12px 16px;
+                min-height: 44px;
+            }
+            .mode-toggle-btn:last-child { border-bottom: none; }
+            .week-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .week-tab-btn { min-width: 75px; flex-shrink: 0; }
+            .theme-grid { grid-template-columns: repeat(2, 1fr); }
+            #btn-save { width: 100% !important; }
+            /* Prevent iOS auto-zoom on input focus */
+            input, select, textarea { font-size: 16px; }
+        }
     </style>
 </head>
 
@@ -937,40 +990,22 @@
 
                 <!-- 1. TIMINGS -->
                 <div id="tab-timings" class="tab-content active">
-                    <div class="form-group">
-                        <label>Speech Time (HH:MM - 24h format)</label>
-                        <div style="display:flex; gap:10px;">
-                            <input type="number" id="input-speech-h" class="form-control" min="0" max="23"
-                                placeholder="HH">
-                            <input type="number" id="input-speech-m" class="form-control" min="0" max="59"
-                                placeholder="MM">
+                    <div class="prayer-grid" style="margin-bottom:20px;">
+                        <div class="form-group">
+                            <label>Speech Time</label>
+                            <input type="time" id="input-speech-time" class="form-control">
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Khutbah Starts Time (HH:MM - 24h format)</label>
-                        <div style="display:flex; gap:10px;">
-                            <input type="number" id="input-khutbah-h" class="form-control" min="0" max="23"
-                                placeholder="HH">
-                            <input type="number" id="input-khutbah-m" class="form-control" min="0" max="59"
-                                placeholder="MM">
+                        <div class="form-group">
+                            <label>Khutbah Starts</label>
+                            <input type="time" id="input-khutbah-time" class="form-control">
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Jummah Jamaat Time (HH:MM - 24h format)</label>
-                        <div style="display:flex; gap:10px;">
-                            <input type="number" id="input-jamaat-h" class="form-control" min="0" max="23"
-                                placeholder="HH">
-                            <input type="number" id="input-jamaat-m" class="form-control" min="0" max="59"
-                                placeholder="MM">
+                        <div class="form-group">
+                            <label>Jumu'ah Jamaat</label>
+                            <input type="time" id="input-jamaat-time" class="form-control">
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Countdown Start Time (Friday HH:MM)</label>
-                        <div style="display:flex; gap:10px;">
-                            <input type="number" id="input-start-h" class="form-control" min="0" max="23"
-                                placeholder="HH">
-                            <input type="number" id="input-start-m" class="form-control" min="0" max="59"
-                                placeholder="MM">
+                        <div class="form-group">
+                            <label>Countdown Start (Friday)</label>
+                            <input type="time" id="input-start-time" class="form-control">
                         </div>
                     </div>
 
@@ -1009,35 +1044,43 @@
                         </div>
                         <!-- WEEK 1 -->
                         <div id="week-tab-0" class="week-content active">
-                            <div class="form-group"><label>Fajr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-fajr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-fajr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Dhuhr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-dhuhr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-dhuhr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Asr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-asr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-asr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Maghrib Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-maghrib-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-maghrib-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Isha Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w0-isha-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w0-isha-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="prayer-grid">
+                                <div class="form-group"><label>Fajr</label><input type="time" id="w0-fajr-time" class="form-control"></div>
+                                <div class="form-group"><label>Dhuhr</label><input type="time" id="w0-dhuhr-time" class="form-control"></div>
+                                <div class="form-group"><label>Asr</label><input type="time" id="w0-asr-time" class="form-control"></div>
+                                <div class="form-group"><label>Maghrib</label><input type="time" id="w0-maghrib-time" class="form-control"></div>
+                                <div class="form-group"><label>Isha</label><input type="time" id="w0-isha-time" class="form-control"></div>
+                            </div>
                         </div>
                         <!-- WEEK 2 -->
                         <div id="week-tab-1" class="week-content">
-                            <div class="form-group"><label>Fajr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-fajr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-fajr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Dhuhr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-dhuhr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-dhuhr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Asr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-asr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-asr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Maghrib Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-maghrib-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-maghrib-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Isha Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w1-isha-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w1-isha-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="prayer-grid">
+                                <div class="form-group"><label>Fajr</label><input type="time" id="w1-fajr-time" class="form-control"></div>
+                                <div class="form-group"><label>Dhuhr</label><input type="time" id="w1-dhuhr-time" class="form-control"></div>
+                                <div class="form-group"><label>Asr</label><input type="time" id="w1-asr-time" class="form-control"></div>
+                                <div class="form-group"><label>Maghrib</label><input type="time" id="w1-maghrib-time" class="form-control"></div>
+                                <div class="form-group"><label>Isha</label><input type="time" id="w1-isha-time" class="form-control"></div>
+                            </div>
                         </div>
                         <!-- WEEK 3 -->
                         <div id="week-tab-2" class="week-content">
-                            <div class="form-group"><label>Fajr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-fajr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-fajr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Dhuhr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-dhuhr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-dhuhr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Asr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-asr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-asr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Maghrib Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-maghrib-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-maghrib-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Isha Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w2-isha-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w2-isha-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="prayer-grid">
+                                <div class="form-group"><label>Fajr</label><input type="time" id="w2-fajr-time" class="form-control"></div>
+                                <div class="form-group"><label>Dhuhr</label><input type="time" id="w2-dhuhr-time" class="form-control"></div>
+                                <div class="form-group"><label>Asr</label><input type="time" id="w2-asr-time" class="form-control"></div>
+                                <div class="form-group"><label>Maghrib</label><input type="time" id="w2-maghrib-time" class="form-control"></div>
+                                <div class="form-group"><label>Isha</label><input type="time" id="w2-isha-time" class="form-control"></div>
+                            </div>
                         </div>
                         <!-- WEEK 4 -->
                         <div id="week-tab-3" class="week-content">
-                            <div class="form-group"><label>Fajr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-fajr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-fajr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Dhuhr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-dhuhr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-dhuhr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Asr Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-asr-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-asr-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Maghrib Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-maghrib-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-maghrib-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
-                            <div class="form-group"><label>Isha Jamat</label><div style="display:flex;gap:10px;"><input type="number" id="w3-isha-h" class="form-control" min="0" max="23" placeholder="HH"><input type="number" id="w3-isha-m" class="form-control" min="0" max="59" placeholder="MM"></div></div>
+                            <div class="prayer-grid">
+                                <div class="form-group"><label>Fajr</label><input type="time" id="w3-fajr-time" class="form-control"></div>
+                                <div class="form-group"><label>Dhuhr</label><input type="time" id="w3-dhuhr-time" class="form-control"></div>
+                                <div class="form-group"><label>Asr</label><input type="time" id="w3-asr-time" class="form-control"></div>
+                                <div class="form-group"><label>Maghrib</label><input type="time" id="w3-maghrib-time" class="form-control"></div>
+                                <div class="form-group"><label>Isha</label><input type="time" id="w3-isha-time" class="form-control"></div>
+                            </div>
                         </div>
                     </div><!-- /jamaat-manual-section -->
 
@@ -1377,6 +1420,15 @@
         function tenantRef() { return db.collection('tenants').doc(currentUid); }
         function slidesRef() { return tenantRef().collection('slides'); }
 
+        // --- TIME INPUT HELPERS ---
+        function _toTimeStr(h, m) {
+            return String(h || 0).padStart(2, '0') + ':' + String(m || 0).padStart(2, '0');
+        }
+        function _parseTimeStr(val) {
+            const parts = (val || '00:00').split(':');
+            return { h: parseInt(parts[0]) || 0, m: parseInt(parts[1]) || 0 };
+        }
+
         // --- AUTH LOGIC ---
         auth.onAuthStateChanged((user) => {
             if (user) {
@@ -1477,14 +1529,10 @@
             document.getElementById('input-mosque-location').value = APP_CONFIG.mosqueLocation || '';
             document.getElementById('input-mosque-name-ar').value = APP_CONFIG.mosqueNameAr || '';
             // Jummah Timings
-            document.getElementById('input-speech-h').value = APP_CONFIG.jummah.speechHour;
-            document.getElementById('input-speech-m').value = APP_CONFIG.jummah.speechMinute;
-            document.getElementById('input-khutbah-h').value = APP_CONFIG.jummah.khutbahHour;
-            document.getElementById('input-khutbah-m').value = APP_CONFIG.jummah.khutbahMinute;
-            document.getElementById('input-jamaat-h').value = APP_CONFIG.jummah.jamaatHour;
-            document.getElementById('input-jamaat-m').value = APP_CONFIG.jummah.jamaatMinute;
-            document.getElementById('input-start-h').value = APP_CONFIG.jummah.startDisplayHour;
-            document.getElementById('input-start-m').value = APP_CONFIG.jummah.startDisplayMinute;
+            document.getElementById('input-speech-time').value = _toTimeStr(APP_CONFIG.jummah.speechHour, APP_CONFIG.jummah.speechMinute);
+            document.getElementById('input-khutbah-time').value = _toTimeStr(APP_CONFIG.jummah.khutbahHour, APP_CONFIG.jummah.khutbahMinute);
+            document.getElementById('input-jamaat-time').value = _toTimeStr(APP_CONFIG.jummah.jamaatHour, APP_CONFIG.jummah.jamaatMinute);
+            document.getElementById('input-start-time').value = _toTimeStr(APP_CONFIG.jummah.startDisplayHour, APP_CONFIG.jummah.startDisplayMinute);
             document.getElementById('input-countdown-mins').value = APP_CONFIG.countdownMinutes || 15;
 
             // Custom colour
@@ -1507,10 +1555,8 @@
             const prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
             APP_CONFIG.weeklyPrayers.forEach((week, wi) => {
                 prayers.forEach(p => {
-                    const hEl = document.getElementById(`w${wi}-${p}-h`);
-                    const mEl = document.getElementById(`w${wi}-${p}-m`);
-                    if (hEl && week[p] !== undefined) hEl.value = week[p].h;
-                    if (mEl && week[p] !== undefined) mEl.value = week[p].m;
+                    const el = document.getElementById(`w${wi}-${p}-time`);
+                    if (el && week[p] !== undefined) el.value = _toTimeStr(week[p].h, week[p].m);
                 });
             });
 
@@ -1537,14 +1583,15 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
             // Jummah timings
-            APP_CONFIG.jummah.speechHour = parseInt(document.getElementById('input-speech-h').value) || 0;
-            APP_CONFIG.jummah.speechMinute = parseInt(document.getElementById('input-speech-m').value) || 0;
-            APP_CONFIG.jummah.khutbahHour = parseInt(document.getElementById('input-khutbah-h').value) || 0;
-            APP_CONFIG.jummah.khutbahMinute = parseInt(document.getElementById('input-khutbah-m').value) || 0;
-            APP_CONFIG.jummah.jamaatHour = parseInt(document.getElementById('input-jamaat-h').value) || 0;
-            APP_CONFIG.jummah.jamaatMinute = parseInt(document.getElementById('input-jamaat-m').value) || 0;
-            APP_CONFIG.jummah.startDisplayHour = parseInt(document.getElementById('input-start-h').value) || 0;
-            APP_CONFIG.jummah.startDisplayMinute = parseInt(document.getElementById('input-start-m').value) || 0;
+            let _pt;
+            _pt = _parseTimeStr(document.getElementById('input-speech-time').value);
+            APP_CONFIG.jummah.speechHour = _pt.h; APP_CONFIG.jummah.speechMinute = _pt.m;
+            _pt = _parseTimeStr(document.getElementById('input-khutbah-time').value);
+            APP_CONFIG.jummah.khutbahHour = _pt.h; APP_CONFIG.jummah.khutbahMinute = _pt.m;
+            _pt = _parseTimeStr(document.getElementById('input-jamaat-time').value);
+            APP_CONFIG.jummah.jamaatHour = _pt.h; APP_CONFIG.jummah.jamaatMinute = _pt.m;
+            _pt = _parseTimeStr(document.getElementById('input-start-time').value);
+            APP_CONFIG.jummah.startDisplayHour = _pt.h; APP_CONFIG.jummah.startDisplayMinute = _pt.m;
 
             // Mosque identity
             APP_CONFIG.mosqueName = document.getElementById('input-mosque-name').value.trim();
@@ -1568,10 +1615,8 @@
             APP_CONFIG.weeklyPrayers = [0, 1, 2, 3].map(wi => {
                 const week = {};
                 prayers.forEach(p => {
-                    week[p] = {
-                        h: parseInt(document.getElementById(`w${wi}-${p}-h`).value) || 0,
-                        m: parseInt(document.getElementById(`w${wi}-${p}-m`).value) || 0
-                    };
+                    const t = _parseTimeStr(document.getElementById(`w${wi}-${p}-time`).value);
+                    week[p] = { h: t.h, m: t.m };
                 });
                 return week;
             });
