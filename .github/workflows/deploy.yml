@@ -22,7 +22,7 @@ jobs:
           test -f admin.html  && echo "✅ admin.html found"  || (echo "❌ admin.html missing" && exit 1)
           echo "All required files present."
 
-      - name: Inject Firebase config
+      - name: Build dist with Firebase config
         env:
           FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
         run: |
@@ -30,14 +30,15 @@ jobs:
             echo "ERROR: FIREBASE_CONFIG secret is not set."
             exit 1
           fi
-          echo "window.FIREBASE_CONFIG=$FIREBASE_CONFIG;" > firebase-config.js
-          echo "firebase-config.js created OK"
+          mkdir dist
+          cp index.html admin.html dist/
+          echo "window.FIREBASE_CONFIG=$FIREBASE_CONFIG;" > dist/firebase-config.js
+          echo "✅ dist built with firebase-config.js"
 
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
+          publish_dir: ./dist
           publish_branch: gh-pages
-          exclude_assets: '.github,*.md,firestore.rules'
