@@ -794,10 +794,17 @@
         }
 
         /* Fullscreen Layout (Schedule overlays media) */
+        body[data-layout="fullscreen"] {
+            height: 100vh;
+            overflow: hidden;
+        }
+
         body[data-layout="fullscreen"] .main-content {
             position: relative;
             padding: 0;
             gap: 0;
+            flex: 1;
+            min-height: 0;
         }
 
         body[data-layout="fullscreen"] .media-panel {
@@ -812,10 +819,11 @@
 
         body[data-layout="fullscreen"] .schedule-panel {
             position: absolute;
+            top: 20px;
             bottom: 20px;
             left: 20px;
             width: 360px;
-            max-height: calc(100% - 40px);
+            max-height: calc(100vh - 120px);
             z-index: 10;
             flex: none;
             background: rgba(15, 19, 22, 0.88);
@@ -864,19 +872,28 @@
         }
 
         /* Vertical Layout (Stacked - for portrait displays) */
+        body[data-layout="vertical"] {
+            height: 100vh;
+            overflow: hidden;
+        }
+
         body[data-layout="vertical"] .main-content {
             flex-direction: column;
-            gap: 20px;
+            gap: 0;
+            flex: 1;
+            min-height: 0;
         }
 
         body[data-layout="vertical"] .schedule-panel {
-            flex: none;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
             order: 2;
         }
 
         body[data-layout="vertical"] .media-panel {
-            flex: none;
-            height: 38vh;
+            flex: 0 0 45vh;
+            overflow: hidden;
             order: 1;
         }
 
