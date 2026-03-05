@@ -1381,17 +1381,6 @@
             max-width: 1920px;
         }
 
-        html[data-device="firetv"] .main-content {
-            flex-direction: row !important;
-            padding: 30px !important;
-            gap: 40px !important;
-        }
-
-        html[data-device="firetv"] .schedule-panel {
-            flex: 0 0 40% !important;
-            width: auto !important;
-        }
-
         html[data-device="firetv"] .media-panel {
             min-height: unset !important;
         }
@@ -1613,6 +1602,8 @@
                 classic: { name: 'Classic', description: '40/60 split layout' },
                 'media-focus': { name: 'Media Focus', description: '25/75 split with larger slideshow' },
                 fullscreen: { name: 'Full Screen', description: 'Slideshow fullscreen with overlay schedule' },
+                'prayer-focus': { name: 'Prayer Focus', description: '55/45 split focusing on prayers' },
+                split: { name: 'Split', description: '50/50 equal layout' },
                 vertical: { name: 'Vertical', description: 'Stacked layout for portrait displays' }
             };
 
