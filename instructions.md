@@ -42,7 +42,7 @@ FMDisplays is a real-time, cloud-synchronised digital signage system for mosques
 - Automatic Jummah countdown on Fridays
 - Customisable slideshow with image uploads
 - 5 colour themes (Gold, Emerald, Royal, Rose, **Custom RGB**)
-- 4 layout modes (Classic, Media Focus, Fullscreen, Vertical)
+- 6 layout modes (Classic, Media Focus, Fullscreen, Prayer Focus, Split, Vertical)
 - Firebase Firestore cloud synchronisation — multi-tenant (one project, many mosques)
 - Mobile-responsive admin panel (iOS/Android friendly, native time pickers)
 - First-time setup wizard for new mosques
@@ -161,7 +161,7 @@ tenants/{uid}/                     <- per-mosque document
     mosqueLocation:   "string"
     mosqueNameAr:     "string"     <- Urdu / Arabic name (optional)
     theme:            "gold"       <- gold | emerald | royal | rose | custom
-    layout:           "classic"    <- classic | media-focus | fullscreen | vertical
+    layout:           "classic"    <- classic | media-focus | fullscreen | prayer-focus | split | vertical
     customColor:      "#7c3aed"    <- used when theme = "custom"
     bgColor:          ""           <- optional solid background colour (overrides theme gradient)
     countdownMinutes: 15           <- minutes before Jamaat for countdown overlay
@@ -268,9 +268,11 @@ A colour picker lets you replace the default dark gradient with any solid colour
 
 **Layout Modes:**
 1. Classic — 40/60 split
-2. Media Focus — 25/75 split
+2. Media Focus — 25/75 split (larger slideshow)
 3. Fullscreen — media fills screen, floating times overlay
-4. Vertical — stacked layout (portrait screens)
+4. Prayer Focus — 55/45 split emphasising the prayer schedule
+5. Split — 50/50 equal split
+6. Vertical — stacked layout for portrait / rotated screens
 
 ---
 
@@ -579,6 +581,7 @@ Edit the CSS variables at the top of `index.html` for deeper colour customisatio
 | Change theme | Appearance → select → Save |
 | Set custom brand colour | Appearance → Custom Color → pick → Save |
 | Set custom background colour | Appearance → Background Color → pick → Save (Reset Default to revert) |
+| Change layout mode | Appearance → Layout Style → select card → Save |
 | Update mosque name / location | Mosque Info Bar at top of settings → Save |
 | Update prayer API location | Prayer Settings → edit city/country → Save |
 | Preview monthly timetable | Prayer Settings → Load Timetable |
@@ -598,6 +601,13 @@ Edit the CSS variables at the top of `index.html` for deeper colour customisatio
 ---
 
 ## Version History
+
+**v4.3 — March 2026**
+- Added **Prayer Focus** layout (55/45 split — wider prayer schedule panel)
+- Added **Split** layout (50/50 equal split between media and schedule)
+- Restored and fully fixed **Vertical** layout — stacked portrait mode with compact header, scaled slide text, and flex-chain prayer rows that fill the screen without scrolling
+- Fixed all new layouts silently falling back to Classic (were missing from `LAYOUT_OPTIONS` JS object)
+- Removed Fire TV `flex-direction: row !important` override that was forcing landscape layout on all modes
 
 **v4.2 — March 2026**
 - Background Color picker in Appearance tab — override theme gradient with any solid colour; Reset Default reverts to theme default
