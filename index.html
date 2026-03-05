@@ -1685,6 +1685,8 @@
                 seedBuiltinSlides();     // Ensure built-in slides exist in Firestore
 
                 updateClock();
+                // Hide/show Jummah card immediately based on day — don't wait for Firestore
+                updateJummahTimesDisplay();
                 // 4f: try-catch on every setInterval callback
                 setInterval(function() {
                     try { updateClock(); } catch(e) { console.error('Clock error:', e); }
