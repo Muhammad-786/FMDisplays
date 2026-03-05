@@ -1441,14 +1441,7 @@
         // SECURITY NOTE: For production deployment, consider using environment variables
         // or Firebase Hosting with reserved URLs to protect these credentials.
         // See instructions.md for more details on securing your Firebase config.
-        const firebaseConfig = {
-            apiKey: "AIzaSyCirBPRHp02zVZFUp5F1t42xm0jEmZeiEc",
-            authDomain: "mosquedisplay-eab43.firebaseapp.com",
-            projectId: "mosquedisplay-eab43",
-            storageBucket: "mosquedisplay-eab43.firebasestorage.app",
-            messagingSenderId: "542105594974",
-            appId: "1:542105594974:web:63b591fa0d3cd697eb98cf"
-        };
+        const firebaseConfig = __FIREBASE_CONFIG__;
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();

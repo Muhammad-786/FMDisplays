@@ -22,6 +22,20 @@ jobs:
           test -f admin.html  && echo "✅ admin.html found"  || (echo "❌ admin.html missing" && exit 1)
           echo "All required files present."
 
+      - name: Inject Firebase config
+        env:
+          FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
+        run: |
+          python3 - <<'EOF'
+          import os, re
+          cfg = os.environ['FIREBASE_CONFIG']
+          for f in ['index.html', 'admin.html']:
+              content = open(f).read()
+              content = content.replace('__FIREBASE_CONFIG__', cfg)
+              open(f, 'w').write(content)
+          print('Firebase config injected into index.html and admin.html')
+          EOF
+
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: peaceiris/actions-gh-pages@v4
