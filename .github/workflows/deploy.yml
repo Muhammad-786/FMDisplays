@@ -1,0 +1,32 @@
+name: Deploy Web App
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  validate:
+    name: Validate & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate HTML files
+        run: |
+          echo "Checking HTML files exist..."
+          test -f index.html  && echo "✅ index.html found"  || (echo "❌ index.html missing" && exit 1)
+          test -f admin.html  && echo "✅ admin.html found"  || (echo "❌ admin.html missing" && exit 1)
+          echo "All required files present."
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          exclude_assets: '.github,*.md,firestore.rules'
