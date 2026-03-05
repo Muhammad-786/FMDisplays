@@ -1235,6 +1235,21 @@
                         </div>
                     </div>
 
+                    <!-- Background Color -->
+                    <div style="margin-top:20px;">
+                        <label style="display:block; margin-bottom:10px;">Background Color</label>
+                        <div style="display:flex; align-items:center; gap:14px; background:rgba(255,255,255,0.03); padding:14px; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                            <input type="color" id="input-bg-color" value="#0f1316" data-active="0"
+                                oninput="this.dataset.active='1';"
+                                style="width:48px; height:48px; border:none; border-radius:6px; cursor:pointer; background:transparent; padding:0;">
+                            <div>
+                                <div style="font-size:0.85rem; color:var(--text-white); font-weight:600;">Custom Background</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Pick any solid colour to replace the theme's dark background.</div>
+                            </div>
+                            <button onclick="resetBgColor()" style="margin-left:auto; padding:6px 12px; font-size:0.78rem; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:6px; color:var(--text-muted); cursor:pointer; white-space:nowrap;">Reset Default</button>
+                        </div>
+                    </div>
+
                     <label style="margin-top: 25px; display: block;">Layout Style</label>
                     <div class="theme-grid">
                         <div class="layout-card" data-layout="classic" onclick="selectLayout('classic')">
@@ -1280,21 +1295,6 @@
                                 </svg>
                             </div>
                             <div class="theme-name">Vertical</div>
-                        </div>
-                    </div>
-
-                    <!-- Background Color -->
-                    <div style="margin-top:20px;">
-                        <label style="display:block; margin-bottom:10px;">Background Color</label>
-                        <div style="display:flex; align-items:center; gap:14px; background:rgba(255,255,255,0.03); padding:14px; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
-                            <input type="color" id="input-bg-color" value="#0f1316" data-active="0"
-                                oninput="this.dataset.active='1';"
-                                style="width:48px; height:48px; border:none; border-radius:6px; cursor:pointer; background:transparent; padding:0;">
-                            <div>
-                                <div style="font-size:0.85rem; color:var(--text-white); font-weight:600;">Custom Background</div>
-                                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Pick any solid colour to replace the theme's dark background.</div>
-                            </div>
-                            <button onclick="resetBgColor()" style="margin-left:auto; padding:6px 12px; font-size:0.78rem; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:6px; color:var(--text-muted); cursor:pointer; white-space:nowrap;">Reset Default</button>
                         </div>
                     </div>
 

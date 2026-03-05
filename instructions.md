@@ -163,6 +163,7 @@ tenants/{uid}/                     <- per-mosque document
     theme:            "gold"       <- gold | emerald | royal | rose | custom
     layout:           "classic"    <- classic | media-focus | fullscreen | vertical
     customColor:      "#7c3aed"    <- used when theme = "custom"
+    bgColor:          ""           <- optional solid background colour (overrides theme gradient)
     countdownMinutes: 15           <- minutes before Jamaat for countdown overlay
     prayerTimesMode:  "auto"       <- auto | upload
     jamaatTimesMode:  "manual"     <- manual | upload
@@ -261,6 +262,9 @@ Both are editable; the English and Urdu title/body can be changed via the pencil
 
 **Colour Themes:** Gold Classic, Emerald Oasis, Royal Night, Rose Dawn, **Custom Color**  
 For Custom Color a colour picker appears — choose any hex; the full dark theme is auto-generated and the admin UI recolours live.
+
+**Background Colour**  
+A colour picker lets you replace the default dark gradient with any solid colour. Click **Reset Default** to revert to the theme's built-in background.
 
 **Layout Modes:**
 1. Classic — 40/60 split
@@ -574,6 +578,7 @@ Edit the CSS variables at the top of `index.html` for deeper colour customisatio
 | Edit built-in slide text | Slides → pencil icon |
 | Change theme | Appearance → select → Save |
 | Set custom brand colour | Appearance → Custom Color → pick → Save |
+| Set custom background colour | Appearance → Background Color → pick → Save (Reset Default to revert) |
 | Update mosque name / location | Mosque Info Bar at top of settings → Save |
 | Update prayer API location | Prayer Settings → edit city/country → Save |
 | Preview monthly timetable | Prayer Settings → Load Timetable |
@@ -593,6 +598,14 @@ Edit the CSS variables at the top of `index.html` for deeper colour customisatio
 ---
 
 ## Version History
+
+**v4.2 — March 2026**
+- Background Color picker in Appearance tab — override theme gradient with any solid colour; Reset Default reverts to theme default
+- Layout-responsive prayer table — font sizes and padding scale correctly in Media Focus, Fullscreen, and Vertical layouts
+- Prayer row active-highlight logic changed from "next prayer" to "currently active prayer"
+- Dhuhr row hidden on Fridays; Jummah row shown in its place
+- Jummah countdown overlay added
+- Overlay background set to fully opaque black
 
 **v4.1 — March 2026**
 - "API Settings" tab renamed to **Prayer Settings**
