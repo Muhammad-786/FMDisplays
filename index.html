@@ -812,15 +812,15 @@
 
         body[data-layout="fullscreen"] .schedule-panel {
             position: absolute;
-            bottom: 30px;
-            left: 30px;
-            width: 380px;
-            max-height: calc(100% - 60px);
+            bottom: 20px;
+            left: 20px;
+            width: 360px;
+            max-height: calc(100% - 40px);
             z-index: 10;
             flex: none;
-            background: rgba(15, 19, 22, 0.85);
-            border-radius: 24px;
-            padding: 20px;
+            background: rgba(15, 19, 22, 0.88);
+            border-radius: 18px;
+            padding: 14px 16px;
             backdrop-filter: blur(20px);
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -831,14 +831,14 @@
             background: transparent;
             border: none;
             box-shadow: none;
-            padding: 10px 0;
+            padding: 4px 0;
             border-radius: 0;
         }
 
         body[data-layout="fullscreen"] .section-title {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
+            font-size: 1.4rem;
+            margin-bottom: 6px;
+            padding-bottom: 6px;
         }
 
         body[data-layout="fullscreen"] .time-slot {
@@ -876,7 +876,7 @@
 
         body[data-layout="vertical"] .media-panel {
             flex: none;
-            height: 50vh;
+            height: 38vh;
             order: 1;
         }
 
@@ -907,36 +907,36 @@
         }
 
         /* --- PRAYER TABLE LAYOUT SCALING --- */
-        /* Media Focus: narrow 25% panel — shrink everything */
+        /* Media Focus: narrow 25% panel — slightly reduced, still readable */
         body[data-layout="media-focus"] .prayer-row {
             grid-template-columns: 1.4fr 0.8fr 0.9fr;
-            padding: 6px 8px;
+            padding: 8px 10px;
             border-radius: 8px;
         }
-        body[data-layout="media-focus"] .prayer-name { font-size: 0.78rem; }
-        body[data-layout="media-focus"] .en-name { font-size: 0.78rem; }
-        body[data-layout="media-focus"] .ur-name { font-size: 0.65rem; }
-        body[data-layout="media-focus"] .prayer-name i { width: 14px; font-size: 0.75rem; }
-        body[data-layout="media-focus"] .prayer-time  { font-size: 0.8rem; }
-        body[data-layout="media-focus"] .prayer-jamat { font-size: 0.84rem; }
-        body[data-layout="media-focus"] .prayer-row.highlight .prayer-jamat { font-size: 0.95rem; }
-        body[data-layout="media-focus"] .jummah-row .prayer-jamat { font-size: 0.84rem; }
-        body[data-layout="media-focus"] .section-title { font-size: 1.6rem; margin-bottom: 10px; }
+        body[data-layout="media-focus"] .prayer-name { font-size: 0.95rem; }
+        body[data-layout="media-focus"] .en-name { font-size: 0.95rem; }
+        body[data-layout="media-focus"] .ur-name { font-size: 0.78rem; }
+        body[data-layout="media-focus"] .prayer-name i { width: 16px; font-size: 0.9rem; }
+        body[data-layout="media-focus"] .prayer-time  { font-size: 0.97rem; }
+        body[data-layout="media-focus"] .prayer-jamat { font-size: 1.05rem; }
+        body[data-layout="media-focus"] .prayer-row.highlight .prayer-jamat { font-size: 1.15rem; }
+        body[data-layout="media-focus"] .jummah-row .prayer-jamat { font-size: 1.05rem; }
+        body[data-layout="media-focus"] .section-title { font-size: 1.6rem; margin-bottom: 8px; }
 
-        /* Fullscreen: 380px fixed overlay — compact */
+        /* Fullscreen: floating 380px overlay — compact rows so all fit */
         body[data-layout="fullscreen"] .prayer-row {
-            padding: 7px 10px;
+            padding: 5px 10px;
         }
-        body[data-layout="fullscreen"] .prayer-name { font-size: 0.88rem; }
-        body[data-layout="fullscreen"] .en-name { font-size: 0.88rem; }
-        body[data-layout="fullscreen"] .ur-name { font-size: 0.72rem; }
-        body[data-layout="fullscreen"] .prayer-name i { width: 16px; }
-        body[data-layout="fullscreen"] .prayer-time  { font-size: 0.88rem; }
-        body[data-layout="fullscreen"] .prayer-jamat { font-size: 0.95rem; }
-        body[data-layout="fullscreen"] .prayer-row.highlight .prayer-jamat { font-size: 1.1rem; }
-        body[data-layout="fullscreen"] .jummah-row .prayer-jamat { font-size: 0.95rem; }
+        body[data-layout="fullscreen"] .prayer-name { font-size: 0.82rem; }
+        body[data-layout="fullscreen"] .en-name { font-size: 0.82rem; }
+        body[data-layout="fullscreen"] .ur-name { font-size: 0.67rem; }
+        body[data-layout="fullscreen"] .prayer-name i { width: 14px; font-size: 0.8rem; }
+        body[data-layout="fullscreen"] .prayer-time  { font-size: 0.82rem; }
+        body[data-layout="fullscreen"] .prayer-jamat { font-size: 0.9rem; }
+        body[data-layout="fullscreen"] .prayer-row.highlight .prayer-jamat { font-size: 1rem; }
+        body[data-layout="fullscreen"] .jummah-row .prayer-jamat { font-size: 0.9rem; }
 
-        /* Vertical: full-width bottom strip — moderate scale */
+        /* Vertical: prayer table below slideshow — moderate scale */
         body[data-layout="vertical"] .prayer-row {
             padding: 7px 12px;
         }
