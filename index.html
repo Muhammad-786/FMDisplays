@@ -906,6 +906,46 @@
             padding: 20px;
         }
 
+        /* --- PRAYER TABLE LAYOUT SCALING --- */
+        /* Media Focus: narrow 25% panel — shrink everything */
+        body[data-layout="media-focus"] .prayer-row {
+            grid-template-columns: 1.4fr 0.8fr 0.9fr;
+            padding: 6px 8px;
+            border-radius: 8px;
+        }
+        body[data-layout="media-focus"] .prayer-name { font-size: 0.78rem; }
+        body[data-layout="media-focus"] .en-name { font-size: 0.78rem; }
+        body[data-layout="media-focus"] .ur-name { font-size: 0.65rem; }
+        body[data-layout="media-focus"] .prayer-name i { width: 14px; font-size: 0.75rem; }
+        body[data-layout="media-focus"] .prayer-time  { font-size: 0.8rem; }
+        body[data-layout="media-focus"] .prayer-jamat { font-size: 0.84rem; }
+        body[data-layout="media-focus"] .prayer-row.highlight .prayer-jamat { font-size: 0.95rem; }
+        body[data-layout="media-focus"] .jummah-row .prayer-jamat { font-size: 0.84rem; }
+        body[data-layout="media-focus"] .section-title { font-size: 1.6rem; margin-bottom: 10px; }
+
+        /* Fullscreen: 380px fixed overlay — compact */
+        body[data-layout="fullscreen"] .prayer-row {
+            padding: 7px 10px;
+        }
+        body[data-layout="fullscreen"] .prayer-name { font-size: 0.88rem; }
+        body[data-layout="fullscreen"] .en-name { font-size: 0.88rem; }
+        body[data-layout="fullscreen"] .ur-name { font-size: 0.72rem; }
+        body[data-layout="fullscreen"] .prayer-name i { width: 16px; }
+        body[data-layout="fullscreen"] .prayer-time  { font-size: 0.88rem; }
+        body[data-layout="fullscreen"] .prayer-jamat { font-size: 0.95rem; }
+        body[data-layout="fullscreen"] .prayer-row.highlight .prayer-jamat { font-size: 1.1rem; }
+        body[data-layout="fullscreen"] .jummah-row .prayer-jamat { font-size: 0.95rem; }
+
+        /* Vertical: full-width bottom strip — moderate scale */
+        body[data-layout="vertical"] .prayer-row {
+            padding: 7px 12px;
+        }
+        body[data-layout="vertical"] .prayer-name { font-size: 0.92rem; }
+        body[data-layout="vertical"] .en-name { font-size: 0.92rem; }
+        body[data-layout="vertical"] .ur-name { font-size: 0.76rem; }
+        body[data-layout="vertical"] .prayer-time  { font-size: 0.95rem; }
+        body[data-layout="vertical"] .prayer-jamat { font-size: 1rem; }
+        body[data-layout="vertical"] .prayer-row.highlight .prayer-jamat { font-size: 1.15rem; }
 
 
 
@@ -1558,6 +1598,7 @@
                 layout: 'classic',  // Current layout
                 countdownMinutes: 15,
                 customColor: '#d4af37',
+                bgColor: '',
                 mosqueName: '',
                 mosqueLocation: '',
                 mosqueNameAr: '',
@@ -1782,6 +1823,7 @@
                         APP_CONFIG.prayerConfig = data.prayerConfig || DEFAULT_CONFIG.prayerConfig;
                         APP_CONFIG.countdownMinutes = (data.countdownMinutes !== undefined) ? data.countdownMinutes : 15;
                         APP_CONFIG.customColor = data.customColor || '#d4af37';
+                        APP_CONFIG.bgColor = data.bgColor || '';
                         if (data.weeklyPrayers && Array.isArray(data.weeklyPrayers) && data.weeklyPrayers.length === 4) {
                             APP_CONFIG.weeklyPrayers = data.weeklyPrayers;
                         } else if (data.dailyPrayers) {
@@ -1791,6 +1833,7 @@
                         APP_CONFIG.jamaatTimesMode  = data.jamaatTimesMode  || 'manual';
                         APP_CONFIG.annualTimetable  = data.annualTimetable  || [];
                         applyTheme(APP_CONFIG.theme);
+                        applyBgColor(APP_CONFIG.bgColor);
                         applyLayout(APP_CONFIG.layout);
                         updateJummahTimesDisplay();
                     })
@@ -1855,6 +1898,7 @@
                             APP_CONFIG.prayerConfig = data.prayerConfig || DEFAULT_CONFIG.prayerConfig;
                             APP_CONFIG.countdownMinutes = (data.countdownMinutes !== undefined) ? data.countdownMinutes : 15;
                             APP_CONFIG.customColor = data.customColor || '#d4af37';
+                            APP_CONFIG.bgColor = data.bgColor || '';
                             APP_CONFIG.mosqueName = data.mosqueName || '';
                             APP_CONFIG.mosqueLocation = data.mosqueLocation || '';
                             APP_CONFIG.mosqueNameAr = data.mosqueNameAr || '';
@@ -1888,6 +1932,7 @@
                             if (APP_CONFIG.theme !== prevTheme || APP_CONFIG.customColor !== prevCustomColor) {
                                 applyTheme(APP_CONFIG.theme);
                             }
+                            applyBgColor(APP_CONFIG.bgColor);
                             if (APP_CONFIG.layout !== prevLayout) {
                                 applyLayout(APP_CONFIG.layout);
                             }
@@ -1997,6 +2042,30 @@
                     }
                 `;
                 document.body.setAttribute('data-theme', 'custom');
+            }
+
+            function applyBgColor(color) {
+                let el = document.getElementById('bg-color-css');
+                if (!el) {
+                    el = document.createElement('style');
+                    el.id = 'bg-color-css';
+                    document.head.appendChild(el);
+                }
+                el.textContent = color
+                    ? `body { background-color: ${color} !important; background-image: none !important; }`
+                    : '';
+            }
+
+            function applyBgColor(color) {
+                let el = document.getElementById('bg-color-css');
+                if (!el) {
+                    el = document.createElement('style');
+                    el.id = 'bg-color-css';
+                    document.head.appendChild(el);
+                }
+                el.textContent = color
+                    ? `body { background-color: ${color} !important; background-image: none !important; }`
+                    : '';
             }
 
             /**
