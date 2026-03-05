@@ -1,5 +1,5 @@
 # FMDisplays — Mosque Digital Signage System
-## Complete Setup and Configuration Guide — v4.0
+## Complete Setup and Configuration Guide — v4.1
 
 ---
 
@@ -54,6 +54,8 @@ FMDisplays is a real-time, cloud-synchronised digital signage system for mosques
 - **24/7 hardened listeners** — change detection, debounce, generation counter, auto-restart
 - **Fire TV optimised** — desktop UA, fullscreen, keep-screen-on, no GPU crash
 - **Built-in slides** — phone-silence and donate reminders (editable English + Urdu text)
+- **Prayer times embed widget** — paste an `<iframe>` snippet to show live prayer times on any website
+- **Firebase config secured** — credentials removed from source; injected via GitHub Secret at deploy
 
 ---
 
@@ -118,22 +120,21 @@ NoorBoxApp/
 4. **Create admin user** — Authentication → Add user → enter email + password
 5. **Enable Storage** (for image uploads) — Build → Storage → Get started
 
-### Step 2: Paste Firebase Config
+### Step 2: Store Firebase Config as a GitHub Secret
+
+The Firebase config is **not kept in the source files**. It is injected at deploy time by GitHub Actions from a repository secret, so your API keys are never exposed in the public repo.
 
 1. Firebase Console → Project Settings → Your apps → Web (`</>`)
 2. Register the app, copy the `firebaseConfig` object
-3. Paste it into both `admin.html` and `index.html`, replacing the existing config block
+3. Format it as a single-line JSON string, e.g.:
+   ```
+   {"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}
+   ```
+4. Go to your **FMDisplays GitHub repo → Settings → Secrets and variables → Actions → New repository secret**
+5. Name: `FIREBASE_CONFIG`, Value: the JSON string above → **Add secret**
+6. The deploy workflow automatically injects it into `index.html` and `admin.html` at build time
 
-```javascript
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_ID",
-    appId: "YOUR_APP_ID"
-};
-```
+> The source files contain the placeholder `__FIREBASE_CONFIG__`. The live GitHub Pages site always has the real config injected.
 
 ### Step 3: First-Time Setup Wizard
 
@@ -198,7 +199,7 @@ Open `admin.html` in any browser — works on desktop and mobile phones.
 
 ### Login
 
-Enter your Firebase email and password. The display URL for your TV screens is shown at the top after login.
+Enter your Firebase email and password.
 
 ### Mosque Info Bar
 
@@ -269,7 +270,7 @@ For Custom Color a colour picker appears — choose any hex; the full dark theme
 
 ---
 
-### API Settings Tab
+### Prayer Settings Tab
 
 **Prayer Times Mode:**
 
@@ -287,6 +288,15 @@ For Custom Color a colour picker appears — choose any hex; the full dark theme
 | Date, Fajr Begin, Sunrise, Dhuhr Begin, Asr Begin, Maghrib Begin, Isha Begin | Fajr Jamaat, Dhuhr Jamaat, Asr Jamaat, Maghrib Jamaat, Isha Jamaat |
 
 If Jamaat columns are present the display uses them automatically; otherwise the 4-week manual schedule applies.
+
+**Embed Prayer Times on Your Website**  
+At the bottom of the Prayer Settings tab an `<iframe>` code block is shown (generated after login). Copy and paste it into any HTML page or website builder to display a live, compact prayer times widget — no slideshow, no header, no login required for visitors.
+
+The embed URL format is:
+```
+https://muhammad-786.github.io/FMDisplays/index.html?widget=1&uid=YOUR_UID
+```
+The widget reads your Firestore data directly (public read) and auto-updates whenever you save changes in admin.
 
 ---
 
@@ -380,11 +390,13 @@ cd NoorBoxApp
 
 Triggers on every push to `master`:
 1. Validates that `index.html` and `admin.html` exist
-2. Deploys the repo to GitHub Pages (`gh-pages` branch)
+2. **Injects Firebase config** from the `FIREBASE_CONFIG` repository secret into both HTML files (replaces the `__FIREBASE_CONFIG__` placeholder)
+3. Deploys to GitHub Pages (`gh-pages` branch)
 
 **One-time setup:**  
-GitHub repo → Settings → Pages → Source → `gh-pages` branch  
-GitHub repo → Settings → Actions → General → Workflow permissions → Read and write
+- GitHub repo → Settings → Pages → Source → `gh-pages` branch  
+- GitHub repo → Settings → Actions → General → Workflow permissions → Read and write  
+- GitHub repo → Settings → Secrets and variables → Actions → add `FIREBASE_CONFIG` secret (see Initial Setup Step 2)
 
 ### Android Repo — `build.yml`
 
@@ -457,21 +469,25 @@ https://api.aladhan.com/v1/timingsByCity?city={city}&country={country}&method={m
 
 ### Firebase Credentials
 
-Firebase API keys in the HTML files are client-side by design — Firebase security is enforced by Firestore rules and Authentication, not key secrecy. For additional protection:
+The Firebase config is **not stored in the repo source**. The source files contain the placeholder `__FIREBASE_CONFIG__`; the real config is injected at deploy time via a GitHub Actions secret. This means:
+- No API keys are visible in the public repo history
+- The live GitHub Pages site always has the real config injected automatically
 
-**Option 1 — Domain restriction**  
-Firebase Console → Project Settings → API key restrictions → restrict to your GitHub Pages domain.
+**Additional hardening (recommended):**
 
-**Option 2 — Firebase Hosting**
+**1 — API key domain restriction**  
+Google Cloud Console → APIs & Services → Credentials → edit your Browser key → HTTP referrers → add `https://muhammad-786.github.io/*`. The key will then be rejected on any other domain.
+
+**2 — App Check**  
+Enable Firebase App Check in Firebase Console to block unauthorised apps from accessing Firestore.
+
+**3 — Firebase Hosting (alternative to GitHub Pages)**
 ```bash
 npm install -g firebase-tools
 firebase login
 firebase init hosting
 firebase deploy --only hosting
 ```
-
-**Option 3 — App Check**  
-Enable Firebase App Check to block unauthorised apps from accessing Firestore.
 
 ### Admin Access
 
@@ -497,12 +513,22 @@ Works with unlimited screens, no coordination server and no Firestore writes.
 
 For mosques using a fixed annual prayer timetable:
 
-1. Download the CSV template from API Settings → Upload Annual Timetable tab
+1. Download the CSV template from Prayer Settings → Upload Annual Timetable tab
 2. Fill in dates and prayer times (one row per day)
 3. Optionally add Jamaat columns
-4. Upload in the Prayer API tab and set mode to **Upload Annual Timetable**
+4. Set mode to **Upload Annual Timetable** and upload the file
 
 Today's date is matched against the CSV automatically.
+
+### Prayer Times Embed Widget
+
+Embed a live prayer times table on any website (no slideshow, no login for visitors):
+
+1. Open admin panel → **Prayer Settings** tab → scroll to the bottom
+2. Copy the generated `<iframe>` code
+3. Paste into any HTML page or website builder (WordPress, Wix, Squarespace, etc.)
+
+The widget auto-updates whenever you save changes in admin. It reads data from Firestore using the uid embedded in the URL — visitors never need to log in.
 
 ### Kiosk Mode
 
@@ -549,9 +575,10 @@ Edit the CSS variables at the top of `index.html` for deeper colour customisatio
 | Change theme | Appearance → select → Save |
 | Set custom brand colour | Appearance → Custom Color → pick → Save |
 | Update mosque name / location | Mosque Info Bar at top of settings → Save |
-| Update prayer API location | API Settings → edit city/country → Save |
-| Preview monthly timetable | API Settings → Load Timetable |
-| Upload annual timetable | API Settings → Upload Annual Timetable tab → drag & drop CSV |
+| Update prayer API location | Prayer Settings → edit city/country → Save |
+| Preview monthly timetable | Prayer Settings → Load Timetable |
+| Upload annual timetable | Prayer Settings → Upload Annual Timetable tab → drag & drop CSV |
+| Get embed widget code | Prayer Settings → scroll to bottom → Copy |
 | Download latest APK | NoorBoxApp GitHub → Actions or Releases |
 
 ### Keyboard Shortcuts
@@ -566,6 +593,13 @@ Edit the CSS variables at the top of `index.html` for deeper colour customisatio
 ---
 
 ## Version History
+
+**v4.1 — March 2026**
+- "API Settings" tab renamed to **Prayer Settings**
+- Prayer times embed widget — `<iframe>` code generated in admin, loads prayer table without slideshow or login
+- Firebase config removed from source code; injected at deploy time via `FIREBASE_CONFIG` GitHub Secret
+- GitHub Actions deploy workflow updated to inject config before publishing to GitHub Pages
+- Fixed JS crash on admin load caused by removed display URL bar element
 
 **v4.0 — March 2026**
 - Multi-screen slideshow sync (epoch-based — all TVs always show the same slide)
