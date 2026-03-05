@@ -871,57 +871,6 @@
             font-size: 2.5rem;
         }
 
-        /* Vertical Layout (Stacked - for portrait displays) */
-        body[data-layout="vertical"] {
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        body[data-layout="vertical"] .main-content {
-            flex-direction: column;
-            gap: 0;
-            flex: 1;
-            min-height: 0;
-        }
-
-        body[data-layout="vertical"] .schedule-panel {
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-            order: 2;
-        }
-
-        body[data-layout="vertical"] .media-panel {
-            flex: 0 0 45vh;
-            overflow: hidden;
-            order: 1;
-        }
-
-        body[data-layout="vertical"] .timing-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
-        body[data-layout="vertical"] .time-slot {
-            flex-direction: column;
-            text-align: center;
-            padding: 15px 10px;
-        }
-
-        body[data-layout="vertical"] .time-slot i {
-            margin-right: 0;
-            margin-bottom: 8px;
-        }
-
-        body[data-layout="vertical"] .slot-info {
-            flex-direction: column;
-        }
-
-        body[data-layout="vertical"] #countdown-container {
-            min-height: auto;
-            padding: 20px;
-        }
 
         /* --- PRAYER TABLE LAYOUT SCALING --- */
         /* Media Focus: narrow 25% panel — slightly reduced, still readable */
@@ -953,16 +902,6 @@
         body[data-layout="fullscreen"] .prayer-row.highlight .prayer-jamat { font-size: 1rem; }
         body[data-layout="fullscreen"] .jummah-row .prayer-jamat { font-size: 0.9rem; }
 
-        /* Vertical: prayer table below slideshow — moderate scale */
-        body[data-layout="vertical"] .prayer-row {
-            padding: 7px 12px;
-        }
-        body[data-layout="vertical"] .prayer-name { font-size: 0.92rem; }
-        body[data-layout="vertical"] .en-name { font-size: 0.92rem; }
-        body[data-layout="vertical"] .ur-name { font-size: 0.76rem; }
-        body[data-layout="vertical"] .prayer-time  { font-size: 0.95rem; }
-        body[data-layout="vertical"] .prayer-jamat { font-size: 1rem; }
-        body[data-layout="vertical"] .prayer-row.highlight .prayer-jamat { font-size: 1.15rem; }
 
 
 
