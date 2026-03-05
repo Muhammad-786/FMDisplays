@@ -1306,6 +1306,17 @@
             animation: none !important;
             transform: none !important;
         }
+
+        /* --- WIDGET EMBED MODE --- */
+        body[data-widget] #display-login-screen { display: none !important; }
+        body[data-widget] header { display: none !important; }
+        body[data-widget] .media-panel { display: none !important; }
+        body[data-widget] #countdown-overlay { display: none !important; }
+        body[data-widget] #silent-overlay { display: none !important; }
+        body[data-widget] { background: #0f1316; margin: 0; padding: 8px; min-height: unset; }
+        body[data-widget] .main-content { display: block; width: 100%; padding: 0; }
+        body[data-widget] .schedule-panel { width: 100%; flex: unset; padding: 0; }
+        body[data-widget] .glass-card { border-radius: 10px; }
     </style>
 </head>
 
@@ -1455,6 +1466,14 @@
             firebase.initializeApp(firebaseConfig);
             const db = firebase.firestore();
             const auth = firebase.auth();
+
+            // --- WIDGET EMBED MODE ---
+            const _urlParams = new URLSearchParams(window.location.search);
+            const _widgetMode = _urlParams.get('widget') === '1';
+            const _widgetUid = _urlParams.get('uid') || '';
+            if (_widgetMode && _widgetUid) {
+                document.body.setAttribute('data-widget', '1');
+            }
 
             // --- MULTI-TENANT: auth-based tenant ID ---
             let currentUid = null;
@@ -2509,6 +2528,13 @@
                     document.getElementById('display-login-screen').style.display = 'none';
                     initApp();
                 } else {
+                    // Widget embed mode: bypass auth using uid from URL param
+                    if (_widgetMode && _widgetUid) {
+                        currentUid = _widgetUid;
+                        document.getElementById('display-login-screen').style.display = 'none';
+                        if (!_appInitialized) initApp();
+                        return;
+                    }
                     _unsubListeners.forEach(fn => fn());
                     _unsubListeners = [];
                     _appInitialized = false;

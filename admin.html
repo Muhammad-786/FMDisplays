@@ -1050,7 +1050,7 @@
                     <button class="tab-btn active" onclick="switchTab('timings')">Timings</button>
                     <button class="tab-btn" onclick="switchTab('slides')">Slides</button>
                     <button class="tab-btn" onclick="switchTab('appearance')">Appearance</button>
-                    <button class="tab-btn" onclick="switchTab('api')">API Settings</button>
+                    <button class="tab-btn" onclick="switchTab('api')">Prayer Settings</button>
                 </div>
 
                 <!-- 1. TIMINGS -->
@@ -1313,7 +1313,7 @@
                     </div>
                 </div>
 
-                <!-- 4. API SETTINGS -->
+                <!-- 4. PRAYER SETTINGS -->
                 <div id="tab-api" class="tab-content">
 
                     <!-- Mode selector -->
@@ -1406,6 +1406,22 @@
                         <!-- Preview table -->
                         <div id="prayer-csv-preview" style="display:none; overflow-x:auto; max-height:240px; overflow-y:auto; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:4px;"></div>
                     </div>
+                </div>
+
+                <!-- EMBED WIDGET -->
+                <div style="margin-top:30px; border-top:1px solid rgba(255,255,255,0.1); padding-top:24px;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+                        <i class="fas fa-code" style="color:var(--gold-primary);"></i>
+                        <span style="font-weight:600; color:var(--text-white); font-size:0.95rem;">Embed Prayer Times on Your Website</span>
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:14px; line-height:1.55;">Place this code wherever you want the prayer times widget to appear. It shows only the prayer times table — no slideshow.</p>
+                    <div style="position:relative;">
+                        <pre id="embed-code-block" style="background:#0d1117; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:14px 14px 14px 14px; font-size:0.75rem; color:#adbac7; white-space:pre-wrap; word-break:break-all; margin:0; font-family:monospace; line-height:1.6; padding-right:90px;">Sign in to generate embed code</pre>
+                        <button onclick="copyEmbedCode(event)" style="position:absolute; top:10px; right:10px; padding:5px 12px; font-size:0.78rem; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:6px; color:var(--text-white); cursor:pointer;">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.77rem; margin-top:10px;"><i class="fas fa-info-circle"></i> You can paste this directly into any HTML page, WordPress block, or website builder.</p>
                 </div>
 
                 <!-- SAVE BUTTON -->
@@ -1501,6 +1517,8 @@
                 const _base = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
                 const _displayUrl = _base + 'index.html';
                 document.getElementById('open-display-btn').href = _displayUrl;
+                // Generate embed code now that we have the uid
+                generateEmbedCode(user.uid, _base);
                 document.getElementById('login-view').style.display = 'none';
                 document.getElementById('settings-view').style.display = 'block';
                 document.getElementById('auth-controls').style.display = 'block';
@@ -1607,7 +1625,7 @@
             // Show picker row if custom is the active theme
             document.getElementById('custom-color-row').classList.toggle('visible', APP_CONFIG.theme === 'custom');
 
-            // API Settings
+            // Prayer Settings
             if (APP_CONFIG.prayerConfig) {
                 document.getElementById('api-city').value = APP_CONFIG.prayerConfig.city || '';
                 document.getElementById('api-country').value = APP_CONFIG.prayerConfig.country || '';
@@ -1938,6 +1956,22 @@
             batch.update(ref2, { order: idx1 }); // This assumes order == index, which we try to maintain
 
             batch.commit().catch(err => console.error(err));
+        }
+
+        function generateEmbedCode(uid, base) {
+            const widgetUrl = base + 'index.html?widget=1&uid=' + uid;
+            const code = '<iframe\n  src="' + widgetUrl + '"\n  width="420"\n  height="600"\n  frameborder="0"\n  style="border-radius:12px;border:none;"\n  loading="lazy"\n  title="Prayer Times"\n></iframe>';
+            const el = document.getElementById('embed-code-block');
+            if (el) el.textContent = code;
+        }
+
+        function copyEmbedCode(event) {
+            const code = document.getElementById('embed-code-block').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = event.currentTarget;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+                setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; }, 2000);
+            });
         }
 
         function copyDisplayUrl(event) {
