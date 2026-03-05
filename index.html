@@ -903,9 +903,12 @@
         }
 
         /* Scale down slide text so it doesn't crop in the short media panel */
-        body[data-layout="vertical"] .slide-content h2 { font-size: 1.8rem; margin-bottom: 4px; }
-        body[data-layout="vertical"] .slide-content p { font-size: 1rem; }
-        body[data-layout="vertical"] .slide-content .arabic-text { font-size: 2rem; margin-bottom: 4px; }
+        body[data-layout="vertical"] .slide-text { padding: 14px 20px; }
+        body[data-layout="vertical"] .slide-text > div:first-child { font-size: 3.2rem !important; margin-bottom: 8px !important; }
+        body[data-layout="vertical"] .slide-text h2 { font-size: 2rem !important; margin-bottom: 6px !important; }
+        body[data-layout="vertical"] .slide-text h2 span { font-size: 1.4rem !important; margin-top: 2px !important; }
+        body[data-layout="vertical"] .slide-text p { font-size: 1.1rem !important; }
+        body[data-layout="vertical"] .slide-text p span { font-size: 0.95rem !important; margin-top: 4px !important; }
 
         body[data-layout="vertical"] .schedule-panel {
             flex: 1;
