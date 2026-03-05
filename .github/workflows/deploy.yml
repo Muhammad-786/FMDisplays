@@ -26,18 +26,12 @@ jobs:
         env:
           FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
         run: |
-          python3 - <<'EOF'
-          import os, sys
-          cfg = os.environ.get('FIREBASE_CONFIG', '').strip()
-          if not cfg:
-              print('ERROR: FIREBASE_CONFIG secret is not set. Go to GitHub repo Settings -> Secrets and variables -> Actions and add it.')
-              sys.exit(1)
-          for f in ['index.html', 'admin.html']:
-              content = open(f).read()
-              content = content.replace("window['__FIREBASE_CONFIG__']", cfg)
-              open(f, 'w').write(content)
-          print('Firebase config injected into index.html and admin.html')
-          EOF
+          if [ -z "$FIREBASE_CONFIG" ]; then
+            echo "ERROR: FIREBASE_CONFIG secret is not set."
+            exit 1
+          fi
+          echo "window.FIREBASE_CONFIG=$FIREBASE_CONFIG;" > firebase-config.js
+          echo "firebase-config.js created OK"
 
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
