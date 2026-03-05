@@ -704,6 +704,9 @@
 
         /* ===== MOBILE RESPONSIVE ===== */
         @media (max-width: 640px) {
+            /* Prevent horizontal bleed */
+            body { overflow-x: hidden; }
+
             .admin-container {
                 width: 100%;
                 max-width: 100%;
@@ -717,29 +720,102 @@
             }
             .admin-body {
                 overflow-y: visible;
-                padding: 16px;
+                padding: 14px;
             }
-            .admin-header { padding: 14px 16px; }
-            .admin-header h2 { font-size: 1.1rem; }
+
+            /* Header: wrap so email/logout don't collide with title */
+            .admin-header {
+                padding: 12px 14px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .admin-header h2 { font-size: 1rem; flex: 1 1 auto; min-width: 0; }
+            #auth-controls { font-size: 0.8rem; order: 3; width: 100%; }
+
+            /* Touch targets */
             .btn { min-height: 44px; }
-            .tab-btn { padding: 10px 12px; font-size: 0.85rem; }
-            .mosq-info-bar { flex-direction: column; }
-            .display-url-bar { flex-direction: column; align-items: flex-start; }
-            .display-url-bar code { width: 100%; }
-            .mode-toggle-group { flex-direction: column; }
+            .tab-btn { padding: 10px 10px; font-size: 0.82rem; }
+
+            /* ---- Mosque info bar ----
+               CRITICAL: parent has align-items:flex-end; in column direction
+               this right-aligns children → massive left gap. Fix: stretch. */
+            .mosq-info-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .mosq-info-bar .form-group { width: 100%; min-width: 0; }
+
+            /* Display URL bar */
+            .display-url-bar { flex-direction: column; align-items: stretch; }
+            .display-url-bar code { width: 100%; min-width: 0; }
+
+            /* Mode toggles stack vertically */
+            .mode-toggle-group { flex-direction: column; border-radius: 10px; }
             .mode-toggle-btn {
-                border-right: none;
+                border-right: none !important;
                 border-bottom: 1px solid rgba(255,255,255,0.08);
                 padding: 12px 16px;
                 min-height: 44px;
+                border-radius: 0;
             }
             .mode-toggle-btn:last-child { border-bottom: none; }
+
+            /* Week tabs: scroll horizontally, don't wrap */
             .week-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .week-tab-btn { min-width: 75px; flex-shrink: 0; }
+            .week-tab-btn { min-width: 72px; flex-shrink: 0; font-size: 0.75rem; }
+
+            /* Theme grid 2-column */
             .theme-grid { grid-template-columns: repeat(2, 1fr); }
+
+            /* Slides upload row: stack vertically */
+            .slide-upload-row { flex-direction: column !important; }
+            .slide-upload-row input[type="file"] { width: 100%; }
+
+            /* Slide item action buttons: smaller */
+            .slide-item { flex-wrap: wrap; }
+            .slide-url { min-width: 0; }
+
+            /* Save button full width */
             #btn-save { width: 100% !important; }
-            /* Prevent iOS auto-zoom on input focus */
-            input, select, textarea { font-size: 16px; }
+
+            /* Prevent iOS auto-zoom on inputs */
+            input, select, textarea { font-size: 16px !important; }
+
+            /* ---- Setup Wizard ---- */
+            /* Allow wizard to scroll if taller than viewport */
+            #setup-wizard {
+                align-items: flex-start;
+                padding: 12px 8px 20px;
+                overflow-y: auto;
+            }
+            .wz-card {
+                width: 100%;
+                max-width: 100%;
+                border-radius: 14px;
+            }
+            .wz-header { padding: 14px 16px 12px; }
+            .wz-header-title { font-size: 0.95rem; }
+            .wz-header-sub { font-size: 0.71rem; }
+
+            /* Stepper: smaller circles to fit 5 steps */
+            .wz-stepper { padding: 12px 8px 0; }
+            .wz-step-circle { width: 28px; height: 28px; font-size: 0.72rem; }
+            .wz-step-label { font-size: 0.56rem; }
+            .wz-connector { margin-top: 13px; min-width: 4px; }
+
+            /* Panel content */
+            .wz-panel { padding: 16px 16px 10px; }
+            .wz-panel-title { font-size: 1rem; }
+
+            /* Side-by-side field rows: wrap on small screens */
+            .wz-row { flex-wrap: wrap; }
+            .wz-row .wz-field { min-width: 120px; }
+
+            /* Jamaat time grid: 3 cols instead of 5 */
+            .wz-time-grid { grid-template-columns: repeat(3, 1fr); }
+
+            .wz-footer { padding: 10px 16px 14px; }
+            .wz-btn { padding: 8px 16px; font-size: 0.85rem; min-height: 40px; }
         }
     </style>
 </head>
@@ -1108,7 +1184,7 @@
                         style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; border:1px dashed var(--gold-primary); margin-bottom: 20px;">
                         <label style="color:var(--gold-primary); margin-bottom: 10px;"><i
                                 class="fas fa-cloud-upload-alt"></i> Upload New Slide (Image File)</label>
-                        <div style="display:flex; gap:10px;">
+                        <div class="slide-upload-row" style="display:flex; gap:10px;">
                             <input type="file" id="input-slide-file" class="form-control" accept="image/*">
                             <button class="btn btn-primary" id="btn-upload" onclick="uploadSlideFile()">Upload</button>
                         </div>
@@ -1127,7 +1203,7 @@
 
                     <div class="form-group">
                         <label>Add Slide via URL</label>
-                        <div style="display:flex; gap:10px;">
+                        <div class="slide-upload-row" style="display:flex; gap:10px;">
                             <input type="text" id="input-slide-url" class="form-control"
                                 placeholder="https://example.com/image.jpg">
                             <button class="btn btn-primary" onclick="addNewSlide()">Add</button>
