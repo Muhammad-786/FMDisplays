@@ -27,11 +27,14 @@ jobs:
           FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
         run: |
           python3 - <<'EOF'
-          import os, re
-          cfg = os.environ['FIREBASE_CONFIG']
+          import os, sys
+          cfg = os.environ.get('FIREBASE_CONFIG', '').strip()
+          if not cfg:
+              print('ERROR: FIREBASE_CONFIG secret is not set. Go to GitHub repo Settings -> Secrets and variables -> Actions and add it.')
+              sys.exit(1)
           for f in ['index.html', 'admin.html']:
               content = open(f).read()
-              content = content.replace('__FIREBASE_CONFIG__', cfg)
+              content = content.replace("window['__FIREBASE_CONFIG__']", cfg)
               open(f, 'w').write(content)
           print('Firebase config injected into index.html and admin.html')
           EOF

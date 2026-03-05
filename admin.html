@@ -1439,9 +1439,15 @@
     <script>
         // --- FIREBASE CONFIGURATION ---
         // SECURITY NOTE: For production deployment, consider using environment variables
-        // or Firebase Hosting with reserved URLs to protect these credentials.
-        // See instructions.md for more details on securing your Firebase config.
-        const firebaseConfig = __FIREBASE_CONFIG__;
+        // --- FIREBASE CONFIGURATION ---
+        // Injected by GitHub Actions from the FIREBASE_CONFIG repository secret.
+        // window['__FIREBASE_CONFIG__'] is replaced with the real config object at deploy time.
+        const firebaseConfig = window['__FIREBASE_CONFIG__'] || null;
+        if (!firebaseConfig) {
+            document.body.style.cssText = 'background:#0a0d10;color:white;display:flex;align-items:center;justify-content:center;height:100vh;font-family:monospace;text-align:center;padding:20px;box-sizing:border-box;';
+            document.body.innerHTML = '<div><div style="font-size:2.5rem;margin-bottom:16px;">&#9888;</div><div style="font-size:1.1rem;margin-bottom:10px;">Firebase not configured</div><div style="color:#8b9bb4;font-size:0.85rem;line-height:1.6;">Add the <code style="background:#1e2730;padding:2px 6px;border-radius:4px;">FIREBASE_CONFIG</code> secret<br>in GitHub → Settings → Secrets and variables → Actions,<br>then re-run the deploy workflow.</div></div>';
+            throw new Error('FIREBASE_CONFIG secret not injected');
+        }
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
