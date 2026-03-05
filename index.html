@@ -207,11 +207,14 @@
             backdrop-filter: blur(10px);
         }
 
-        .jummah-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+        .daily-prayers-container {
+            flex: 1;
+        }
+
+        /* Jumu'ah row — only visible on Fridays */
+        .jummah-row {
+            border-left: 3px solid var(--gold-primary) !important;
+            background: linear-gradient(90deg, rgba(212,175,55,0.12), rgba(212,175,55,0.02)) !important;
         }
 
         .section-title {
@@ -483,6 +486,24 @@
             justify-content: center;
             text-align: center;
         }
+
+        /* Media-panel overlays: countdown + silent inside slideshow area */
+        .media-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .media-overlay .overlay-label { font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase; }
+        .media-overlay .overlay-prayer-name { font-size: 3.2rem; margin-bottom: 16px; color: var(--gold-primary); font-family: var(--font-arabic); line-height: 1.2; }
+        .media-overlay .overlay-timer { font-size: 6rem; font-weight: 900; color: var(--text-white); font-variant-numeric: tabular-nums; line-height: 1; }
+        .media-overlay .silent-icon { font-size: 6rem; color: #ff6b6b; margin-bottom: 20px; animation: pulse 2s infinite; }
+        .media-overlay .silent-text { font-size: 1.7rem; color: #ff6b6b; font-weight: 700; }
 
         .overlay-content {
             animation: fadeIn 0.5s ease-out;
@@ -1327,9 +1348,6 @@
         body[data-widget] .prayer-time { font-size: 1rem; }
         body[data-widget] .prayer-jamat { font-size: 1.05rem; }
         body[data-widget] .prayer-name i { font-size: 0.85rem; }
-        body[data-widget] .jummah-container { margin-top: 6px; }
-        body[data-widget] .timing-grid { gap: 5px; }
-        body[data-widget] .time-slot { padding: 7px 12px; }
     </style>
 </head>
 
@@ -1399,6 +1417,13 @@
                         <div class="prayer-jamat" id="jamat-dhuhr">--:--</div>
                     </div>
 
+                    <!-- Jumu'ah (Fridays only) -->
+                    <div class="prayer-row jummah-row" id="row-jummah" style="display:none;">
+                        <div class="prayer-name"><i class="fas fa-users"></i> <span class="name-bilingual"><span class="en-name">Jumu'ah</span><span class="ur-name">جمعہ</span></span></div>
+                        <div class="prayer-time" id="time-jummah">--</div>
+                        <div class="prayer-jamat" id="jamat-jummah">--:--</div>
+                    </div>
+
                     <!-- Asr -->
                     <div class="prayer-row" id="row-asr">
                         <div class="prayer-name"><i class="fas fa-cloud-sun"></i> <span class="name-bilingual"><span class="en-name">Asr</span><span class="ur-name">عصر</span></span></div>
@@ -1422,44 +1447,28 @@
                 </div>
             </div>
 
-            <div class="glass-card jummah-container">
-                <h2 class="section-title">Jummah<span class="ur-section-title">جمعہ</span></h2>
-                <div class="timing-grid">
-                    <div class="time-slot highlight">
-                        <div class="slot-info">
-                            <i class="fas fa-users"></i> <span class="label">Jummah Jamaat<span class="ur-label">جمعہ جماعت</span></span>
-                        </div>
-                        <span class="time" id="jamaat-time">--:--</span>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div class="media-panel" id="slideshow-container">
             <div class="progress-bar" id="slide-progress"></div>
             <div id="loading-message">Loading...</div>
 
-        </div>
-
-
-
-
-
-        <!-- COUNTDOWN OVERLAY -->
-        <div id="countdown-overlay" class="fullscreen-overlay">
-            <div class="overlay-content">
-                <div class="overlay-label">The Prayer of</div>
-                <div class="overlay-prayer-name" id="overlay-prayer-name">Asr</div>
-                <div class="overlay-label">Is In</div>
-                <div class="overlay-timer" id="overlay-timer">14:59</div>
+            <!-- COUNTDOWN PANEL (shown inside slideshow area) -->
+            <div id="countdown-overlay" class="media-overlay">
+                <div class="overlay-content">
+                    <div class="overlay-label">The Prayer of</div>
+                    <div class="overlay-prayer-name" id="overlay-prayer-name">Asr</div>
+                    <div class="overlay-label">Is In</div>
+                    <div class="overlay-timer" id="overlay-timer">14:59</div>
+                </div>
             </div>
-        </div>
 
-        <!-- SILENT MODE OVERLAY -->
-        <div id="silent-overlay" class="fullscreen-overlay">
-            <div class="overlay-content">
-                <div class="silent-icon"><i class="fas fa-mobile-alt" style="text-decoration: line-through;"></i></div>
-                <div class="silent-text">Please Switch Phones to Silent</div>
+            <!-- SILENT MODE PANEL (shown inside slideshow area) -->
+            <div id="silent-overlay" class="media-overlay">
+                <div class="overlay-content">
+                    <div class="silent-icon"><i class="fas fa-mobile-alt" style="text-decoration: line-through;"></i></div>
+                    <div class="silent-text">Please Switch Phones to Silent</div>
+                </div>
             </div>
         </div>
 
@@ -2254,18 +2263,15 @@
                 const today = new Date();
                 const isFriday = today.getDay() === 5;
 
-                const jummahContainer = document.querySelector('.jummah-container');
-                const countdownContainer = document.getElementById('countdown-container');
+                const jummahRow = document.getElementById('row-jummah');
 
                 if (!isFriday) {
-                    if (jummahContainer) jummahContainer.style.display = 'none';
-                    if (countdownContainer) countdownContainer.style.display = 'none';
+                    if (jummahRow) jummahRow.style.display = 'none';
                     return; // Exit if not Friday
                 }
 
-                // If Friday, ensure they are visible
-                if (jummahContainer) jummahContainer.style.display = 'flex';
-                // Countdown visibility is handled by updateClock logic below, but we ensure container is potentially visible here
+                // Friday: show Jummah row inside prayer table
+                if (jummahRow) jummahRow.style.display = '';
 
                 // Re-render times
                 const j = APP_CONFIG.jummah;
@@ -2277,8 +2283,8 @@
                     return `${displayHour}:${displayMinute} ${period}`;
                 };
 
-                // Only update Jamaat time (speech and khutbah times removed from current layout)
-                document.getElementById('jamaat-time').innerText = formatTime(j.jamaatHour, j.jamaatMinute);
+                // Update Jummah Jamaat time in the prayer table row
+                document.getElementById('jamat-jummah').innerText = formatTime(j.jamaatHour, j.jamaatMinute);
             }
 
             // --- CLOCK & COUNTDOWN ---
