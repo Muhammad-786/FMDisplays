@@ -221,11 +221,8 @@
             justify-content: space-between;
         }
 
-        /* Jumu'ah row — single wide line, name left / time right */
+        /* Jumu'ah row — name left, time centered across middle+right columns */
         .jummah-row {
-            display: flex !important;
-            justify-content: space-between;
-            align-items: center;
             border-left: 3px solid var(--gold-primary) !important;
             background: linear-gradient(90deg, rgba(212,175,55,0.12), rgba(212,175,55,0.02)) !important;
         }
@@ -234,6 +231,9 @@
             gap: 10px;
         }
         .jummah-row .prayer-jamat {
+            grid-column: 2 / 4;
+            justify-self: center;
+            text-align: center;
             font-size: 1.3rem;
             color: var(--gold-primary);
         }
