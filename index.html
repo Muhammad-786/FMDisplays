@@ -193,6 +193,7 @@
             display: flex;
             flex-direction: column;
             gap: 25px;
+            align-self: stretch;
         }
 
         .glass-card {
@@ -209,12 +210,33 @@
 
         .daily-prayers-container {
             flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Jumu'ah row — only visible on Fridays */
+        .daily-prayers-container .prayer-table {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Jumu'ah row — gold accent always; used on all days */
         .jummah-row {
             border-left: 3px solid var(--gold-primary) !important;
             background: linear-gradient(90deg, rgba(212,175,55,0.12), rgba(212,175,55,0.02)) !important;
+        }
+
+        /* Single-line compact Jummah row */
+        .jummah-row .prayer-name {
+            font-size: 1.05rem;
+        }
+        .jummah-row .prayer-time {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+        }
+        .jummah-row .prayer-jamat {
+            font-size: 1.15rem;
         }
 
         .section-title {
@@ -295,7 +317,6 @@
 
         /* --- DAILY PRAYERS TABLE --- */
         .daily-prayers-container {
-            margin-bottom: 25px;
             padding: 20px !important;
         }
 
@@ -1417,13 +1438,6 @@
                         <div class="prayer-jamat" id="jamat-dhuhr">--:--</div>
                     </div>
 
-                    <!-- Jumu'ah (Fridays only) -->
-                    <div class="prayer-row jummah-row" id="row-jummah" style="display:none;">
-                        <div class="prayer-name"><i class="fas fa-users"></i> <span class="name-bilingual"><span class="en-name">Jumu'ah</span><span class="ur-name">جمعہ</span></span></div>
-                        <div class="prayer-time" id="time-jummah">--</div>
-                        <div class="prayer-jamat" id="jamat-jummah">--:--</div>
-                    </div>
-
                     <!-- Asr -->
                     <div class="prayer-row" id="row-asr">
                         <div class="prayer-name"><i class="fas fa-cloud-sun"></i> <span class="name-bilingual"><span class="en-name">Asr</span><span class="ur-name">عصر</span></span></div>
@@ -1443,6 +1457,13 @@
                         <div class="prayer-name"><i class="fas fa-moon"></i> <span class="name-bilingual"><span class="en-name">Isha</span><span class="ur-name">عشاء</span></span></div>
                         <div class="prayer-time" id="time-isha">--:--</div>
                         <div class="prayer-jamat" id="jamat-isha">--:--</div>
+                    </div>
+
+                    <!-- Jumu'ah — always shown below Isha; single-line -->
+                    <div class="prayer-row jummah-row" id="row-jummah">
+                        <div class="prayer-name"><i class="fas fa-users"></i> Jumu'ah &nbsp;<span style="font-family:var(--font-urdu);font-size:0.9em;opacity:0.75;">جمعہ</span></div>
+                        <div class="prayer-time" id="time-jummah">Fri</div>
+                        <div class="prayer-jamat" id="jamat-jummah">--:--</div>
                     </div>
                 </div>
             </div>
@@ -2259,21 +2280,8 @@
 
             // --- JUMMAH TIMES DISPLAY ---
             function updateJummahTimesDisplay() {
-                // Check if today is Friday (Day 5)
                 const today = new Date();
                 const isFriday = today.getDay() === 5;
-
-                const jummahRow = document.getElementById('row-jummah');
-
-                if (!isFriday) {
-                    if (jummahRow) jummahRow.style.display = 'none';
-                    return; // Exit if not Friday
-                }
-
-                // Friday: show Jummah row inside prayer table
-                if (jummahRow) jummahRow.style.display = '';
-
-                // Re-render times
                 const j = APP_CONFIG.jummah;
 
                 const formatTime = (hour, minute) => {
@@ -2283,8 +2291,25 @@
                     return `${displayHour}:${displayMinute} ${period}`;
                 };
 
-                // Update Jummah Jamaat time in the prayer table row
-                document.getElementById('jamat-jummah').innerText = formatTime(j.jamaatHour, j.jamaatMinute);
+                // Jummah row is always visible
+                const jamatEl = document.getElementById('jamat-jummah');
+                const timeEl = document.getElementById('time-jummah');
+
+                if (j && j.jamaatHour !== undefined) {
+                    if (jamatEl) jamatEl.innerText = formatTime(j.jamaatHour, j.jamaatMinute);
+                }
+
+                // On Fridays: highlight the row; on other days: dim it
+                const row = document.getElementById('row-jummah');
+                if (row) {
+                    if (isFriday) {
+                        row.style.opacity = '1';
+                        if (timeEl) timeEl.innerText = 'Today';
+                    } else {
+                        row.style.opacity = '0.55';
+                        if (timeEl) timeEl.innerText = 'Fri';
+                    }
+                }
             }
 
             // --- CLOCK & COUNTDOWN ---
