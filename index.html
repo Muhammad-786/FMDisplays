@@ -2474,11 +2474,14 @@
 
                 const now = new Date();
                 const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+                const isFriday = now.getDay() === 5;
                 const weekPrayers = getCurrentWeekPrayers();
                 const countdownSecs = (APP_CONFIG.countdownMinutes || 15) * 60;
 
-                // Check each prayer Jamat
-                const prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+                // On Fridays: skip Dhuhr (Jummah replaces it)
+                const prayers = isFriday
+                    ? ['fajr', 'asr', 'maghrib', 'isha']
+                    : ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
                 let activeCountdown = null;
                 let activeSilent = null;
 
@@ -2501,40 +2504,57 @@
                     }
                 });
 
+                // On Fridays: check Jummah countdown using startDisplay time → Jamaat
+                if (isFriday && APP_CONFIG.jummah) {
+                    const j = APP_CONFIG.jummah;
+                    const startSec  = (j.startDisplayHour  || 0) * 3600 + (j.startDisplayMinute  || 0) * 60;
+                    const jamaatSec = (j.jamaatHour || 13)  * 3600 + (j.jamaatMinute || 0) * 60;
+                    const diffToJamaat = jamaatSec - nowSec;
+
+                    // Show Jummah countdown from Countdown Start time until Jamaat
+                    if (nowSec >= startSec && diffToJamaat > 0) {
+                        activeCountdown = { prayer: 'jummah', diff: diffToJamaat };
+                        activeSilent = false;
+                    }
+                    // Silent for 5 mins after Jummah Jamaat
+                    if (diffToJamaat <= 0 && diffToJamaat >= -300) {
+                        activeSilent = true;
+                        activeCountdown = null;
+                    }
+                }
+
                 const countdownOverlay = document.getElementById('countdown-overlay');
                 const silentOverlay = document.getElementById('silent-overlay');
-                const slideshowContainer = document.getElementById('slideshow-container');
                 const overlayTimer = document.getElementById('overlay-timer');
                 const overlayName = document.getElementById('overlay-prayer-name');
 
                 if (activeSilent) {
-                    // Show Silent
+                    // Show Silent — overlay covers slideshow via position:absolute
                     silentOverlay.style.display = 'flex';
                     countdownOverlay.style.display = 'none';
-                    slideshowContainer.style.opacity = '0';
                 }
                 else if (activeCountdown) {
                     // Show Countdown
                     silentOverlay.style.display = 'none';
                     countdownOverlay.style.display = 'flex';
-                    slideshowContainer.style.opacity = '0';
 
                     // Update Timer
                     const m = Math.floor(activeCountdown.diff / 60).toString().padStart(2, '0');
                     const s = (activeCountdown.diff % 60).toString().padStart(2, '0');
                     overlayTimer.innerText = `${m}:${s}`;
 
-                    // Capitalize first letter + Urdu name
-                    const URDU_PRAYER_NAMES = { fajr: 'فجر', dhuhr: 'ظہر', asr: 'عصر', maghrib: 'مغرب', isha: 'عشاء' };
-                    const engName = activeCountdown.prayer.charAt(0).toUpperCase() + activeCountdown.prayer.slice(1);
+                    // Prayer name + Urdu
+                    const URDU_PRAYER_NAMES = { fajr: 'فجر', dhuhr: 'ظہر', asr: 'عصر', maghrib: 'مغرب', isha: 'عشاء', jummah: 'جمعہ' };
+                    const engName = activeCountdown.prayer === 'jummah'
+                        ? "Jumu'ah"
+                        : (activeCountdown.prayer.charAt(0).toUpperCase() + activeCountdown.prayer.slice(1));
                     const urduName = URDU_PRAYER_NAMES[activeCountdown.prayer] || '';
                     overlayName.innerHTML = engName + (urduName ? '<span class="overlay-prayer-urdu">' + urduName + '</span>' : '');
                 }
                 else {
-                    // Show Slideshow
+                    // Hide both overlays — slideshow shows through
                     silentOverlay.style.display = 'none';
                     countdownOverlay.style.display = 'none';
-                    slideshowContainer.style.opacity = '1';
                 }
             }
 
