@@ -453,8 +453,7 @@
 
         /* Active Row Styling */
         .prayer-row.highlight {
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
-            /* Teal-ish default */
+            background: linear-gradient(90deg, rgba(212, 175, 55, 0.2), rgba(0, 0, 0, 0));
             border-left: 4px solid var(--gold-primary);
             transform: scale(1.02);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -2289,17 +2288,25 @@
                     return `${displayHour}:${displayMinute} ${period}`;
                 };
 
-                // Jummah row is always visible
                 const jamatEl = document.getElementById('jamat-jummah');
-
                 if (j && j.jamaatHour !== undefined) {
                     if (jamatEl) jamatEl.innerText = formatTime(j.jamaatHour, j.jamaatMinute);
                 }
 
-                // On Fridays: full opacity; on other days: dim it
-                const row = document.getElementById('row-jummah');
-                if (row) {
-                    row.style.opacity = isFriday ? '1' : '0.55';
+                // On Fridays: hide Dhuhr, move Jummah into Dhuhr's position
+                const rowDhuhr  = document.getElementById('row-dhuhr');
+                const rowJummah = document.getElementById('row-jummah');
+                const rowSunrise = document.getElementById('row-sunrise');
+                const rowIsha   = document.getElementById('row-isha');
+
+                if (isFriday) {
+                    if (rowDhuhr)  rowDhuhr.style.display = 'none';
+                    if (rowSunrise && rowJummah) rowSunrise.after(rowJummah);
+                    if (rowJummah) { rowJummah.style.opacity = '1'; rowJummah.style.display = ''; }
+                } else {
+                    if (rowDhuhr)  rowDhuhr.style.display = '';
+                    if (rowIsha && rowJummah) rowIsha.after(rowJummah);
+                    if (rowJummah) { rowJummah.style.opacity = '0.55'; rowJummah.style.display = ''; }
                 }
             }
 
@@ -2431,41 +2438,38 @@
                     const row = document.getElementById(`row-${prayer}`);
                     if (row) row.classList.remove('highlight');
                 });
+                // Also reset jummah row
+                const jRow = document.getElementById('row-jummah');
+                if (jRow) jRow.classList.remove('highlight');
 
-                // Highlight Current/Next Prayer Logic
-                // We will highlight the prayer that is UP NEXT or CURRENTLY ACTIVE
+                // Active Prayer Highlight — highlight whichever prayer began most recently
                 const now = new Date();
                 const nowMin = now.getHours() * 60 + now.getMinutes();
+                const isFriday = now.getDay() === 5;
+                const _pm = t => { const [h, m] = cleanTime(t).split(':').map(Number); return h * 60 + m; };
+                const jH = APP_CONFIG.jummah ? (APP_CONFIG.jummah.speechHour  ?? 12) : 12;
+                const jM = APP_CONFIG.jummah ? (APP_CONFIG.jummah.speechMinute ?? 0)  : 0;
 
-                let activePrayer = null;
-                // Simple logic: find first prayer that hasn't passed yet? 
-                // Or find the prayer range we are currently IN?
-                // Let's highlight the one we are waiting for (Next Jamat) OR currently in.
-
-                // For now, let's stick to the "Next Prayer" logic provided previously
-                // ... (Logic from previous snippet adapted for table rows)
-                const prayerObjs = [
-                    { id: 'row-fajr', time: timings.Fajr },
-                    { id: 'row-sunrise', time: timings.Sunrise },
-                    { id: 'row-dhuhr', time: timings.Dhuhr },
-                    { id: 'row-asr', time: timings.Asr },
-                    { id: 'row-maghrib', time: timings.Maghrib },
-                    { id: 'row-isha', time: timings.Isha }
+                const activePrayerList = [
+                    { id: 'row-fajr',    minTime: _pm(timings.Fajr) },
+                    { id: 'row-sunrise', minTime: _pm(timings.Sunrise) },
+                    isFriday
+                        ? { id: 'row-jummah', minTime: jH * 60 + jM }
+                        : { id: 'row-dhuhr',  minTime: _pm(timings.Dhuhr) },
+                    { id: 'row-asr',     minTime: _pm(timings.Asr) },
+                    { id: 'row-maghrib', minTime: _pm(timings.Maghrib) },
+                    { id: 'row-isha',    minTime: _pm(timings.Isha) }
                 ];
 
-                let nextRowId = 'row-fajr'; // default next day Fajr
-
-                for (let i = 0; i < prayerObjs.length; i++) {
-                    const [h, m] = prayerObjs[i].time.split(':').map(Number);
-                    const pTime = h * 60 + m;
-                    if (nowMin < pTime) {
-                        nextRowId = prayerObjs[i].id;
+                let activeRowId = null;
+                for (let i = activePrayerList.length - 1; i >= 0; i--) {
+                    if (nowMin >= activePrayerList[i].minTime) {
+                        activeRowId = activePrayerList[i].id;
                         break;
                     }
                 }
-
-                const row = document.getElementById(nextRowId);
-                if (row) row.classList.add('highlight');
+                const activeRow = activeRowId ? document.getElementById(activeRowId) : null;
+                if (activeRow) activeRow.classList.add('highlight');
             }
 
             // --- COUNTDOWN LOGIC ---
