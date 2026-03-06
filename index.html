@@ -221,22 +221,21 @@
             justify-content: space-between;
         }
 
-        /* Jumu'ah row — gold accent always; used on all days */
+        /* Jumu'ah row — single wide line, name left / time right */
         .jummah-row {
+            display: flex !important;
+            justify-content: space-between;
+            align-items: center;
             border-left: 3px solid var(--gold-primary) !important;
             background: linear-gradient(90deg, rgba(212,175,55,0.12), rgba(212,175,55,0.02)) !important;
         }
-
-        /* Single-line compact Jummah row */
         .jummah-row .prayer-name {
-            font-size: 1.05rem;
-        }
-        .jummah-row .prayer-time {
-            font-size: 1.05rem;
-            color: var(--text-muted);
+            font-size: 1.15rem;
+            gap: 10px;
         }
         .jummah-row .prayer-jamat {
-            font-size: 1.15rem;
+            font-size: 1.3rem;
+            color: var(--gold-primary);
         }
 
         .section-title {
@@ -1459,10 +1458,9 @@
                         <div class="prayer-jamat" id="jamat-isha">--:--</div>
                     </div>
 
-                    <!-- Jumu'ah — always shown below Isha; single-line -->
+                    <!-- Jumu'ah — always shown below Isha; single wide line -->
                     <div class="prayer-row jummah-row" id="row-jummah">
-                        <div class="prayer-name"><i class="fas fa-users"></i> Jumu'ah &nbsp;<span style="font-family:var(--font-urdu);font-size:0.9em;opacity:0.75;">جمعہ</span></div>
-                        <div class="prayer-time" id="time-jummah">Fri</div>
+                        <div class="prayer-name"><i class="fas fa-users"></i> Jumu'ah &nbsp;<span style="font-family:var(--font-urdu);font-size:0.88em;opacity:0.8;">جمعہ</span></div>
                         <div class="prayer-jamat" id="jamat-jummah">--:--</div>
                     </div>
                 </div>
@@ -2293,22 +2291,15 @@
 
                 // Jummah row is always visible
                 const jamatEl = document.getElementById('jamat-jummah');
-                const timeEl = document.getElementById('time-jummah');
 
                 if (j && j.jamaatHour !== undefined) {
                     if (jamatEl) jamatEl.innerText = formatTime(j.jamaatHour, j.jamaatMinute);
                 }
 
-                // On Fridays: highlight the row; on other days: dim it
+                // On Fridays: full opacity; on other days: dim it
                 const row = document.getElementById('row-jummah');
                 if (row) {
-                    if (isFriday) {
-                        row.style.opacity = '1';
-                        if (timeEl) timeEl.innerText = 'Today';
-                    } else {
-                        row.style.opacity = '0.55';
-                        if (timeEl) timeEl.innerText = 'Fri';
-                    }
+                    row.style.opacity = isFriday ? '1' : '0.55';
                 }
             }
 
